@@ -1,0 +1,8 @@
+a=1
+
+def change()
+    a = 2
+    print a
+
+change()
+print a

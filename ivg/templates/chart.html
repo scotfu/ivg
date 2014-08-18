@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
 
-<link rel="stylesheet" href="static/nv.d3.css">
+<link rel="stylesheet" href="/static/css/nv.d3.css">
 
 
 <title>Vis Binary Data</title>
@@ -74,9 +74,9 @@
 
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
 <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
-<script src="static/d3.v3.js"></script>
-<script src="static/nv.d3.js"></script>
-<script src="static/chosen.jquery.js" type="text/javascript"></script>
+<script src="/static/js/d3.v3.js"></script>
+<script src="/static/js/nv.d3.js"></script>
+
 
 <script>
 var detailButtonBitStr = "";
@@ -85,14 +85,12 @@ var detailButtonUrlStr = "";
 
 
 $("#filter_button").click(function(){
-       console.log(prefix);
-       prefix = "record/search/group/?";
       $.ajax({
             type: "GET",
-            url: prefix + urlString,
-            dataType: "jsonp",        
+            url: "query/?",
+            dataType: "json",        
             success: function(data) {              
-              drawGraph(data, "left", urlString, group, min);
+              drawGraph(data, "left", "query");
             },
             error : function(httpReq,status,exception){
                 alert(status+" "+exception);
@@ -106,21 +104,12 @@ $("#filter_button").click(function(){
 
 
 $(".k-button").click(function(){
-      var algorithm = $("#algorithms").val();
-      var ageStart = $("#age_start").val();
-      var ageEnd = $("#age_end").val();
-      var gender = $("#gender").val();
-      var education = $("#education").val();
-      var country = $("#country").val();
-      var page = 1;
-      var group = $("#groupby").val();
-      var min = $("#minimum").val();
-      var urlString = "start=" + ageStart + "&end=" + ageEnd + "&gender=" + gender + "&education="+ education +  "&country=" + country + "&p=" + page+"&algorithm="+algorithm;
+
       var location = "left2"
       $('#k-points tr').each(function() {
         urlString += "&point=" +$(this).find("td").html();    
        });
-       prefix = "record/kmeans/?";
+       prefix = "kmeans/?";
        if(this.id=="k_button_2"){
          prefix ="record/kmeans_2/?";
          location ="left3"
@@ -129,7 +118,7 @@ $(".k-button").click(function(){
        });
 
         };
-       console.log(urlString);
+
 
            $.ajax({
             type: "GET",
@@ -145,7 +134,7 @@ $(".k-button").click(function(){
 
 
 
-function drawGraph(source, myPage, urlStr, group, mincount) {
+function drawGraph(source, myPage, urlStr) {
   //Format A
   var chart;
   nv.addGraph(function() {
@@ -160,20 +149,11 @@ function drawGraph(source, myPage, urlStr, group, mincount) {
 
     chart.xAxis.tickFormat(d3.format('.02f'));
     chart.yAxis.tickFormat(d3.format('.02f'));
-    chart.tooltipContent(function(key,x,y,e,chart) {
-        removeClass();
-        var bitstr = e["point"]["bitstring"];
-        detailButtonUrlStr = urlStr;
-        detailButtonBitStr = bitstr;
-       //  highlightPri(bitstr);
-
-        return "BitString: <b>" + bitstr + "</b> Count: <b>" + e["point"]["size"] + "</b>" ;
-    });
 
     chart.scatter.onlyCircles(false);
     var pg = "#test1_" + myPage + " svg";
     d3.select(pg)
-        .datum(getData(source, group, mincount))
+        .datum(getData(source,"none"))
         .call(chart);
 
     nv.utils.windowResize(chart.update);
@@ -187,28 +167,14 @@ function drawGraph(source, myPage, urlStr, group, mincount) {
                 bitstring = $(".xy-tooltip b").html().toString();
                 var selector = "#test1_"+myPage+"+ .kmeans table tbody:last";
                 console.log(selector);
-                $(selector).append('<tr><td>'+bitstring+'</td></tr>');
+                //$(selector).append('<tr><td>'+bitstring+'</td></tr>');
                 console.log(bitstring);
            });
 
       });  
 }
 
-function highlightPri(str) {
-  for (i = 0; i < str.length; i++) {
-    var j = "#p" + i;
-    if (str.charAt(i) == '0') $(j).addClass("fade");
-    else $(j).addClass("highlight");
-  }
-}
 
-function removeClass() {
-  for (i = 0; i < 16; i++) {
-    var j = "#p" + i;
-    $(j).removeClass();
-  }
-
-}
 
 function addOne(d) {
   d.digit++;
@@ -219,134 +185,30 @@ function addOne(d) {
 
 
 
-function getData(source, group, mincount) { //# groups,# points per group
-  //console.log(source);
-  var algorithm = $("#algorithms").val();
+function getData(source,group) { //# groups,# points per group
+
+  var algorithm = "nmds" // $("#algorithms").val();
   if (group == "none") {  //no grouping
       var data = [{key: "# of same response",values: []}];
-      var objList = source["data"]["bitstrings"];
+      var objList = source;
 
       console.log(algorithm);
       for (i = 0; i < objList.length; i++) {
-        var origin = objList[i]["bitstring"]["origin"];
-        var str = objList[i]["bitstring"][algorithm];
-        var s = parseInt(objList[i]["count"]);
-        if (s >= mincount) {
-           data[0].values.push({
-            x: parseFloat(str.split(",")[0]),
-            y: parseFloat(str.split(",")[1]),
-            size: parseInt(objList[i]["count"]),
+        var id = objList[i]["id"];
+        var str = objList[i][algorithm];
+        console.log(str);
+        data[0].values.push({
+            x: parseFloat(str[0]),
+            y: parseFloat(str[1]),
+            size: parseInt(1),
             shape: 'circle',
-            bitstring: origin
+            id: id,
           });         
         }
 
       }        
-  } else if (group == "gender") {
-    //group by gender
-    var data = [{key: "Male", values: []}, {key: "Female", values: []}];
 
-    var maleArray = source["data"]["male"];
-
-    var feArray = source["data"]["female"];
-    for (i = 0; i < maleArray.length; i++) {
-       var s = parseInt(maleArray[i]["count"]);
-       var origin = maleArray[i]["bitstring"]["origin"];
-       var str = maleArray[i]["bitstring"][algorithm];
-       if (s >= mincount) {
-          data[0].values.push({
-            x: parseFloat(str.split(",")[0]),
-            y: parseFloat(str.split(",")[1]),
-            size: s,
-            shape: 'circle',
-            bitstring: origin         
-         });       
-       }
-
-    }
-    for (i = 0; i < feArray.length; i++) {
-       var s = parseInt(feArray[i]["count"]);
-       var origin = feArray[i]["bitstring"]["origin"];
-       var str = feArray[i]["bitstring"][algorithm];
-       if (s >= mincount) {
-          data[1].values.push({
-            x: parseFloat(str.split(",")[0]),
-            y: parseFloat(str.split(",")[1]),
-            size: s,
-            shape: 'circle',
-            bitstring: origin         
-         });       
-       }
-
-    }
-
-  } else if (group == "edu"){ //group by education
-    var data = [{key: "Edu1", values: []}, {key: "Edu2", values: []}, {key: "Edu3", values: []}, {key: "Edu4", values: []}];
-    var e1 = source["data"]["edu1"];
-    var e2 = source["data"]["edu2"];
-    var e3 = source["data"]["edu3"];
-    var e4 = source["data"]["edu4"]; 
-    for (i = 0; i < e1.length; i++) {
-       var s = parseInt(e1[i]["count"]);
-       var origin = e1[i]["bitstring"]["origin"];
-       var str = e1[i]["bitstring"][algorithm];
-       if (s >= mincount) {
-         data[0].values.push({
-            x: parseFloat(str.split(",")[0]),
-            y: parseFloat(str.split(",")[1]),
-            size: s,
-            shape: 'circle',
-            bitstring: origin         
-         });        
-       }
-    }
-
-    for (i = 0; i < e2.length; i++) {
-       var origin = e2[i]["bitstring"]["origin"];
-       var str = e2[i]["bitstring"][algorithm];
-       var s = parseInt(e2[i]["count"]);
-       if (s >= mincount) {
-         data[1].values.push({
-            x: parseFloat(str.split(",")[0]),
-            y: parseFloat(str.split(",")[1]),
-            size: s,
-            shape: 'circle',
-            bitstring: origin         
-         });        
-       }
-
-    }
-    for (i = 0; i < e3.length; i++) {
-       var origin = e3[i]["bitstring"]["origin"];
-       var str = e3[i]["bitstring"][algorithm];
-       var s = parseInt(e3[i]["count"]);
-       if (s >= mincount) {
-          data[2].values.push({
-            x: parseFloat(str.split(",")[0]),
-            y: parseFloat(str.split(",")[1]),
-            size: s,
-            shape: 'circle',
-            bitstring: origin         
-         });       
-       }
-
-    }
-    for (i = 0; i < e4.length; i++) {
-       var origin = e4[i]["bitstring"]["origin"];
-       var str = e4[i]["bitstring"][algorithm];
-       var s = parseInt(e4[i]["count"]);
-       if (s >= mincount) {
-          data[3].values.push({
-            x: parseFloat(str.split(",")[0]),
-            y: parseFloat(str.split(",")[1]),
-            size: s,
-            shape: 'circle',
-            bitstring: origin         
-         });       
-       }
-
-    }    
-  }
+  
   else{
     var k = Object.keys(source["centroids"]).length;
     var data =[];

@@ -1,5 +1,6 @@
 #coding=utf8
 import os
+import json
 
 from werkzeug import secure_filename
 
@@ -8,7 +9,7 @@ from flask import Flask, request, session, g, redirect, url_for, abort,render_te
 
 
 from . import app
-from .utils import allowed_file, csv_handler, get_colletions
+from .utils import allowed_file, csv_handler, get_colletions, case_query
 
 class ListView(View):
 
@@ -60,6 +61,16 @@ class UploadView(MethodView):
             return redirect(url_for('index'))
         flash('Upload failed, please try again')
         return redirect(url_for('upload'))            
+       
+
+class CaseQueryView(MethodView):
+
+    def get(self,case_name):
+        return case_query(case_name)
+#        print case_query(case_name)
+#        return '1'
+    def post(self):
+        return redirect(url_for('index'))            
        
 
         

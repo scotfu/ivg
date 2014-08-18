@@ -1,9 +1,16 @@
+import json
+import bson
 import csv
+from bson.objectid import ObjectId
+
+
 
 from pymongo import MongoClient
 from flask import g
 
 from . import app
+
+MAX = 500
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1] in app.config['ALLOWED_EXTENSIONS']
@@ -51,6 +58,7 @@ def csv_handler(file_name,colletion_name):
         reader = csv.reader(file_handler)
         header = reader.next()
         n = len(header)
+        count = 1
         for row in reader:
             data = {'coordinate':[]}
             for column in range(n):
@@ -62,10 +70,14 @@ def csv_handler(file_name,colletion_name):
                     data[header[column]] = row[column]
             data_set.append(data['coordinate'])        
             try:
-                print data
+                data['_id'] = count
                 collection.insert(data)
             except Exception,e:
                 print e
+            if count >= MAX:
+                break
+            count += 1
+            
 #   run_mds(file_name)           
 
 #def run_mds(colletion_name):
@@ -78,7 +90,7 @@ def csv_handler(file_name,colletion_name):
     #X_true = seed.randint(0, 20, 2 * n_samples).astype(np.float)
     #print X_true
 #    data_set = colletion.
-    X_true = data_set[:100]
+    X_true = data_set[:MAX]
 #X_true = X_true.reshape((n_samples, 2))
 #print X_true
 # Center the data
@@ -113,6 +125,32 @@ def csv_handler(file_name,colletion_name):
 
     npos = clf.fit_transform(npos)
     for n in range(len(npos)):
-        print collection.update({'_id':n},{'mds':list(npos[n])})
+        collection.update({'_id' : n+1 },
+                          {'$set':
+                           {'mds' : list(pos[n]),
+                            'nmds' : list(npos[n]),
+                            'pca' : list(X_true[n]), 
+                           }
+                          })
+
  
- 
+class CustomEncoder(json.JSONEncoder):
+    """A C{json.JSONEncoder} subclass to encode documents that have fields of
+    type C{bson.objectid.ObjectId}, C{datetime.datetime}
+    """
+    def default(self, obj):
+        if isinstance(obj, bson.objectid.ObjectId):
+            return str(obj)
+        elif isinstance(obj, datetime.datetime):
+            return obj.isoformat()
+        return json.JSONEncoder.default(self, obj)
+            
+
+
+    
+def case_query(collection_name):
+    db = get_db()
+    collection = db[collection_name]
+    ec = CustomEncoder()
+    return ec.encode(list(collection.find()))
+    

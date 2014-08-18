@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+
+<title>Upload new File</title>
+
+<h1>Upload new File</h1>
+
+
+{% with messages = get_flashed_messages() %}
+
+{% if messages %}
+
+<ul class=flashes>
+
+{% for message in messages %}
+
+<li>{{ message }}</li>
+
+{% endfor %}
+
+</ul>
+
+{% endif %}
+
+{% endwith %}
+<form action="" method=post enctype=multipart/form-data>
+
+<input type="file" name="file"/></br>
+
+<input type="text" name="url"> Give a name </input></br>
+<input type="submit" value="Upload"/>
+
+</form>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title> List of examples</title>
+
+</head>
+
+
+<body>
+
+<div>
+List starts right here</br>
+
+{% if objects %}
+
+<ul>
+{% for case in objects %}
+<li>
+<a href="{{ url_for('case',case_name=case) }}">{{case}}</a>
+</li>
+{% endfor %}
+</ul>
+
+{% else %}
+
+No cases right now
+
+{% endif %}
+</div>
+
+
+
+</body>
+
+</html>

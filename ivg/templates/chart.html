@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+
+<link rel="stylesheet" href="static/nv.d3.css">
+
+
+<title>Vis Binary Data</title>
+</head>
+
+<body>
+<div class="container-fluid">
+
+<div class="filter row "> 
+  <button id="filter_button" class="btn btn-default">Magic Button</button></div>
+</div>
+
+</div>
+
+    <div class="container-fluid">
+
+      <div class="row">
+
+        <div id="test1_left" class="with-3d-shadow with-transitions col-md-8"  style="height:1000px">
+          <svg></svg>
+        </div>
+
+
+      <div class="kmeans col-md-3">
+
+  <table id="k-points" class="table">
+  <tbody></tbody>
+  
+  </table>
+ <div class="col-md-1 form-group">
+  <button id="k_button" class="btn btn-default k-button">K-Means</button></div>
+</div>
+       </div>
+      </div>
+
+</div>
+
+
+  <div class="container-fluid">
+        <div class="row">
+
+        <div id="test1_left2" class="with-3d-shadow with-transitions col-md-8"  style="height:1000px">
+          <svg></svg>
+        </div>
+
+
+      <div class="kmeans col-md-3">
+
+  <table id="k-points-2" class="table">
+  <tbody></tbody>
+  
+  </table>
+ <div class="col-md-1 form-group">
+  <button id="k_button_2" class="btn btn-default k-button">K-Means</button></div>
+</div>
+       </div>
+
+</div>
+  <div class="container-fluid">
+        <div class="row">
+
+        <div id="test1_left3" class="with-3d-shadow with-transitions col-md-8"  style="height:1000px">
+          <svg></svg>
+        </div>
+</div>
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+<script src="static/d3.v3.js"></script>
+<script src="static/nv.d3.js"></script>
+<script src="static/chosen.jquery.js" type="text/javascript"></script>
+
+<script>
+var detailButtonBitStr = "";
+var detailButtonUrlStr = "";
+
+
+
+$("#filter_button").click(function(){
+       console.log(prefix);
+       prefix = "record/search/group/?";
+      $.ajax({
+            type: "GET",
+            url: prefix + urlString,
+            dataType: "jsonp",        
+            success: function(data) {              
+              drawGraph(data, "left", urlString, group, min);
+            },
+            error : function(httpReq,status,exception){
+                alert(status+" "+exception);
+            }
+          });
+
+
+    });
+
+
+
+
+$(".k-button").click(function(){
+      var algorithm = $("#algorithms").val();
+      var ageStart = $("#age_start").val();
+      var ageEnd = $("#age_end").val();
+      var gender = $("#gender").val();
+      var education = $("#education").val();
+      var country = $("#country").val();
+      var page = 1;
+      var group = $("#groupby").val();
+      var min = $("#minimum").val();
+      var urlString = "start=" + ageStart + "&end=" + ageEnd + "&gender=" + gender + "&education="+ education +  "&country=" + country + "&p=" + page+"&algorithm="+algorithm;
+      var location = "left2"
+      $('#k-points tr').each(function() {
+        urlString += "&point=" +$(this).find("td").html();    
+       });
+       prefix = "record/kmeans/?";
+       if(this.id=="k_button_2"){
+         prefix ="record/kmeans_2/?";
+         location ="left3"
+        $('#k-points-2 tr').each(function() {
+        urlString += "&2nd_point=" +$(this).find("td").html();    
+       });
+
+        };
+       console.log(urlString);
+
+           $.ajax({
+            type: "GET",
+            url: prefix + urlString,
+            dataType: "jsonp",        
+            success: function(data) {              
+              drawGraph(data, location, urlString, 'groupK', min);
+            },
+            error : function(httpReq,status,exception){
+                alert(status+" "+exception);
+            }
+          });})
+
+
+
+function drawGraph(source, myPage, urlStr, group, mincount) {
+  //Format A
+  var chart;
+  nv.addGraph(function() {
+    chart = nv.models.scatterChart()
+                  .showDistX(false)
+                  .showDistY(false)
+                  .useVoronoi(false)
+                  .color(d3.scale.category10().range())
+                  .transitionDuration(300)
+                  .height(1000);
+                  ;
+
+    chart.xAxis.tickFormat(d3.format('.02f'));
+    chart.yAxis.tickFormat(d3.format('.02f'));
+    chart.tooltipContent(function(key,x,y,e,chart) {
+        removeClass();
+        var bitstr = e["point"]["bitstring"];
+        detailButtonUrlStr = urlStr;
+        detailButtonBitStr = bitstr;
+       //  highlightPri(bitstr);
+
+        return "BitString: <b>" + bitstr + "</b> Count: <b>" + e["point"]["size"] + "</b>" ;
+    });
+
+    chart.scatter.onlyCircles(false);
+    var pg = "#test1_" + myPage + " svg";
+    d3.select(pg)
+        .datum(getData(source, group, mincount))
+        .call(chart);
+
+    nv.utils.windowResize(chart.update);
+
+    chart.dispatch.on('stateChange', function(e) { ('New State:', JSON.stringify(e)); });
+
+    return chart;
+  },function(){
+         $(".nv-point").on('click',
+               function(){
+                bitstring = $(".xy-tooltip b").html().toString();
+                var selector = "#test1_"+myPage+"+ .kmeans table tbody:last";
+                console.log(selector);
+                $(selector).append('<tr><td>'+bitstring+'</td></tr>');
+                console.log(bitstring);
+           });
+
+      });  
+}
+
+function highlightPri(str) {
+  for (i = 0; i < str.length; i++) {
+    var j = "#p" + i;
+    if (str.charAt(i) == '0') $(j).addClass("fade");
+    else $(j).addClass("highlight");
+  }
+}
+
+function removeClass() {
+  for (i = 0; i < 16; i++) {
+    var j = "#p" + i;
+    $(j).removeClass();
+  }
+
+}
+
+function addOne(d) {
+  d.digit++;
+  console.log(d.digit);
+}
+
+
+
+
+
+function getData(source, group, mincount) { //# groups,# points per group
+  //console.log(source);
+  var algorithm = $("#algorithms").val();
+  if (group == "none") {  //no grouping
+      var data = [{key: "# of same response",values: []}];
+      var objList = source["data"]["bitstrings"];
+
+      console.log(algorithm);
+      for (i = 0; i < objList.length; i++) {
+        var origin = objList[i]["bitstring"]["origin"];
+        var str = objList[i]["bitstring"][algorithm];
+        var s = parseInt(objList[i]["count"]);
+        if (s >= mincount) {
+           data[0].values.push({
+            x: parseFloat(str.split(",")[0]),
+            y: parseFloat(str.split(",")[1]),
+            size: parseInt(objList[i]["count"]),
+            shape: 'circle',
+            bitstring: origin
+          });         
+        }
+
+      }        
+  } else if (group == "gender") {
+    //group by gender
+    var data = [{key: "Male", values: []}, {key: "Female", values: []}];
+
+    var maleArray = source["data"]["male"];
+
+    var feArray = source["data"]["female"];
+    for (i = 0; i < maleArray.length; i++) {
+       var s = parseInt(maleArray[i]["count"]);
+       var origin = maleArray[i]["bitstring"]["origin"];
+       var str = maleArray[i]["bitstring"][algorithm];
+       if (s >= mincount) {
+          data[0].values.push({
+            x: parseFloat(str.split(",")[0]),
+            y: parseFloat(str.split(",")[1]),
+            size: s,
+            shape: 'circle',
+            bitstring: origin         
+         });       
+       }
+
+    }
+    for (i = 0; i < feArray.length; i++) {
+       var s = parseInt(feArray[i]["count"]);
+       var origin = feArray[i]["bitstring"]["origin"];
+       var str = feArray[i]["bitstring"][algorithm];
+       if (s >= mincount) {
+          data[1].values.push({
+            x: parseFloat(str.split(",")[0]),
+            y: parseFloat(str.split(",")[1]),
+            size: s,
+            shape: 'circle',
+            bitstring: origin         
+         });       
+       }
+
+    }
+
+  } else if (group == "edu"){ //group by education
+    var data = [{key: "Edu1", values: []}, {key: "Edu2", values: []}, {key: "Edu3", values: []}, {key: "Edu4", values: []}];
+    var e1 = source["data"]["edu1"];
+    var e2 = source["data"]["edu2"];
+    var e3 = source["data"]["edu3"];
+    var e4 = source["data"]["edu4"]; 
+    for (i = 0; i < e1.length; i++) {
+       var s = parseInt(e1[i]["count"]);
+       var origin = e1[i]["bitstring"]["origin"];
+       var str = e1[i]["bitstring"][algorithm];
+       if (s >= mincount) {
+         data[0].values.push({
+            x: parseFloat(str.split(",")[0]),
+            y: parseFloat(str.split(",")[1]),
+            size: s,
+            shape: 'circle',
+            bitstring: origin         
+         });        
+       }
+    }
+
+    for (i = 0; i < e2.length; i++) {
+       var origin = e2[i]["bitstring"]["origin"];
+       var str = e2[i]["bitstring"][algorithm];
+       var s = parseInt(e2[i]["count"]);
+       if (s >= mincount) {
+         data[1].values.push({
+            x: parseFloat(str.split(",")[0]),
+            y: parseFloat(str.split(",")[1]),
+            size: s,
+            shape: 'circle',
+            bitstring: origin         
+         });        
+       }
+
+    }
+    for (i = 0; i < e3.length; i++) {
+       var origin = e3[i]["bitstring"]["origin"];
+       var str = e3[i]["bitstring"][algorithm];
+       var s = parseInt(e3[i]["count"]);
+       if (s >= mincount) {
+          data[2].values.push({
+            x: parseFloat(str.split(",")[0]),
+            y: parseFloat(str.split(",")[1]),
+            size: s,
+            shape: 'circle',
+            bitstring: origin         
+         });       
+       }
+
+    }
+    for (i = 0; i < e4.length; i++) {
+       var origin = e4[i]["bitstring"]["origin"];
+       var str = e4[i]["bitstring"][algorithm];
+       var s = parseInt(e4[i]["count"]);
+       if (s >= mincount) {
+          data[3].values.push({
+            x: parseFloat(str.split(",")[0]),
+            y: parseFloat(str.split(",")[1]),
+            size: s,
+            shape: 'circle',
+            bitstring: origin         
+         });       
+       }
+
+    }    
+  }
+  else{
+    var k = Object.keys(source["centroids"]).length;
+    var data =[];
+    var centroids = source["centroids"];  
+    for(i=0;i<k;i++){
+
+    values=[];
+    var group_data = source["data"]["group"+i.toString()];
+    for (j = 0; j < group_data.length; j++) {
+       var s = parseInt(group_data[j]["count"]);
+       var origin = group_data[j]["bitstring"]["origin"];
+       var str = group_data[j]["bitstring"][algorithm];
+       if (s >= mincount) {
+         values.push({
+            x: parseFloat(str.split(",")[0]),
+            y: parseFloat(str.split(",")[1]),
+            size: s,
+            shape: 'circle',
+            bitstring: origin         
+         });        
+       }
+    }
+    data.push({"key":"k"+i.toString(), "values":values});
+
+
+    }
+
+    for (i = 0; i < k; i++) {
+          var str = centroids["group"+i.toString()]["coordinate"];
+          console.log(str);    
+          data[i].values.push({
+            x: parseFloat(str[0]),
+            y: parseFloat(str[1]),
+            size: parseInt(centroids["group"+i.toString()]["avg_count"]),
+            shape:"square",
+
+         });       
+       
+
+    }
+
+}
+  if(algorithm=="nmds"){
+  data.push({key:"bar",values:[
+                    {x: parseFloat("0.745"),
+                    y: parseFloat("0.775"),
+                    size: 0,
+                    shape:"square",},
+                    {x: parseFloat("-0.775"),
+                    y: parseFloat("-0.725"),
+                    size: 0,
+                    shape:"square",}]
+                    })                   
+  }else if(algorithm=="mds"){
+   data.push({key:"bar",values:[
+                    {x: parseFloat("2.365"),
+                    y: parseFloat("2.495"),
+                    size: 0,
+                    shape:"square",},
+                    {x: parseFloat("-2.50"),
+                    y: parseFloat("-2.40"),
+                    size: 0,
+                    shape:"square",}]
+                    })                   
+  
+}
+  else if(algorithm=="pca"){
+data.push({key:"bar",values:[
+                    {x: parseFloat("1.765"),
+                    y: parseFloat("1.285"),
+                    size: 0,
+                    shape:"square",},
+                    {x: parseFloat("-1.515"),
+                    y: parseFloat("-1.485"),
+                    size: 0,
+                    shape:"square",}]
+                    })                   
+  
+}
+ 
+  return data;
+}
+
+
+
+</script>
+
+
+</body>
+</html>

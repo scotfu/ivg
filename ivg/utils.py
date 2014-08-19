@@ -1,13 +1,12 @@
 import json
 import bson
 import csv
+import math
 from bson.objectid import ObjectId
-
 
 
 from pymongo import MongoClient
 from flask import g
-
 from . import app
 
 MAX = 500
@@ -145,12 +144,88 @@ class CustomEncoder(json.JSONEncoder):
             return obj.isoformat()
         return json.JSONEncoder.default(self, obj)
             
-
-
     
 def case_query(collection_name):
     db = get_db()
     collection = db[collection_name]
     ec = CustomEncoder()
-    return ec.encode(list(collection.find()))
+    return ec.encode(list(collection.find({}, {'coordinate' : 0 })))
+
+
+def kmeans_query(collection_name, selected_points, algorithm):
+    db = get_db()
+    collection = db[collection_name]
+    points = list(collection.find({}, {'_id':0, algorithm:1}))
+    centroids = list(collection.find({'_id':{'$in':selected_points}}, {'_id':0, algorithm:1}))
+    return Kmeans(points, centroids)
+    
+
+
+
+def kmeans_2_query(collection_name):
+    db = get_db()
+    collection = db[collection_name]
+    ec = CustomEncoder()
+    return ec.encode(list(collection.find({}, {'coordinate' : 0 })))
+
+
+
+#kmeans part starts
+    
+#watch out: float flaw 
+def squared_euclidean_distance(pointA, pointB):
+    if len(pointA) != len(pointB):
+        raise ValueError('the two points should have the same degree of dimension')
+
+    dimension = len(pointA)
+    distance = 0.0
+    for i in range(dimension):
+        distance += math.pow(pointA[i] - pointB[i], 2)
+
+    return distance
+    
+    
+def assignment(points, centroids):
+    '''
+    assgin points to k clusters, the first step of k-means iteration
+    Randomly pick k points as centroids then assgin points to the nearest centroid
+    '''
+    k = len(centroids)
+    num_of_points = len(points)
+    cluster_matrix = [[0 for i in range(num_of_points)] for j in range(k)]
+
+    for i in range(len(points)):
+        distance = float('inf')
+        assign_to = None
+        for j in range(len(centroids)):
+            e_distance = squared_euclidean_distance(points[i], centroids[j])
+            if e_distance <= distance:
+                distance = e_distance
+                assign_to = j
+        cluster_matrix[assign_to][i] = 1
+        
+    return cluster_matrix
+
+
+def update_centroids(points, cluster_matrix):
+    new_centroids = []
+    dimension = len(points[0])
+    for cluster in cluster_matrix:
+        coordinate = [0 for i in range(dimension)]
+        for position in range(len(cluster)):
+            if cluster[position] == 1:
+               coordinate = map(sum, zip(coordinate, points[position]))
+        count = float(cluster.count(1))
+        mean = map(lambda x:x/count, coordinate)
+        new_centroids.append(mean)    
+    return new_centroids
+
+def KMeans(points,centroids):
+    #import pprint
+    #centroids = random.sample(points, k)
+    cluster_matrix = assignment(points, centroids)
+    #cluster_matrix
+    centroids = update_centroids(points, cluster_matrix)
+    return cluster_matrix,centroids
+    #plot(points, cluster_matrix, centroids)
     

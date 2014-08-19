@@ -9,7 +9,7 @@ from flask import Flask, request, session, g, redirect, url_for, abort,render_te
 
 
 from . import app
-from .utils import allowed_file, csv_handler, get_colletions, case_query
+from .utils import allowed_file, csv_handler, get_colletions, case_query, kmeans_query, kmeans_2_query
 
 class ListView(View):
 
@@ -71,7 +71,28 @@ class CaseQueryView(MethodView):
 #        return '1'
     def post(self):
         return redirect(url_for('index'))            
-       
+
+class Kmeans_QueryView(MethodView):
+
+    def get(self,case_name):
+        selected_points = set(request.values.getlist("id"))
+        algorithm = request.args.get('algorithm','nmds')
+        cluster_matrix, centroids = kmeans_query(case_name, selected_points, algorithm)
+        
+
+    def post(self):
+        return redirect(url_for('index'))            
+
+class Kmeans_2_QueryView(MethodView):
+
+    def get(self,case_name):
+        selected_points = set(request.values.getlist("id"))
+        return kmeans_2_query(case_name,selected_points)
+
+
+    def post(self):
+        return redirect(url_for('index'))            
+        
 
         
         

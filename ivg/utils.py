@@ -33,7 +33,7 @@ def get_db():
 
     if not hasattr(g, 'mongodb'):
         g.mongodb = connect_db()
-        return g.mongodb
+    return g.mongodb
 
 
 #@app.teardown_appcontext
@@ -44,7 +44,7 @@ def close_db(error):
     if hasattr(g, 'mongodb'):
         g.mongodb.close()
 
-def get_colletions():
+def get_collections():
     db = get_db()
 
     return db.collection_names()
@@ -145,21 +145,54 @@ class CustomEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, obj)
             
     
-def case_query(collection_name):
+def case_query(collection_name, algorithm):
     db = get_db()
     collection = db[collection_name]
-    ec = CustomEncoder()
-    return ec.encode(list(collection.find({}, {'coordinate' : 0 })))
+    return [point for point in list(collection.find({}, {'_id':1, algorithm:1}))]
+
 
 
 def kmeans_query(collection_name, selected_points, algorithm):
     db = get_db()
     collection = db[collection_name]
-    points = list(collection.find({}, {'_id':0, algorithm:1}))
-    centroids = list(collection.find({'_id':{'$in':selected_points}}, {'_id':0, algorithm:1}))
-    return Kmeans(points, centroids)
+    points =[point.get(algorithm) for point in list(collection.find({}, {'_id':0, algorithm:1}))]
+    selected_points = map(lambda x: int(x), selected_points)
+    centroids =[point.get(algorithm) for point in list(collection.find({'_id':{'$in':selected_points}}, {'_id':0, algorithm:1}))]
+
+    return KMeans(points, centroids)
+
+    
+def kmeans2_query(collection_name, selected_points, second_selected_points, algorithm):
+    db = get_db()
+    collection = db[collection_name]
+    cluster_matrix, centroids = kmeans_query(collection_name, selected_points, algorithm)
+    all_points =[point for point in list(collection.find({}, {'_id':1, algorithm:1}))]
+    #test which cluster it is
+    one_point = int(second_selected_points[0])
+    temp_k = 0
+    while True:
+        if cluster_matrix[temp_k][one_point] == 1:
+            break
+        else:
+            temp_k += 1
+    print temp_k
+    print cluster_matrix[temp_k]
+    all_points = [ all_points[i] for i in range(len(all_points))  if cluster_matrix[temp_k][i] == 1 ]
+    print all_points
+    second_selected_points = map(lambda x: int(x), second_selected_points)
+    second_selected_points =[point.get(algorithm) for point in list(collection.find({'_id':{'$in':second_selected_points}}, {'_id':0, algorithm:1}))]
+    all_points_only_coor =   [point.get(algorithm) for point in all_points]
+    cluster_matrix, centroids = KMeans(all_points_only_coor, second_selected_points)
+
+    return cluster_matrix, centroids, all_points
     
 
+def get_all_points(collection_name, algorithm, second_selected_points=None):
+    db = get_db()
+    collection = db[collection_name]
+    return [point for point in list(collection.find({}, {'_id':1, algorithm:1}))]
+
+    
 
 
 def kmeans_2_query(collection_name):

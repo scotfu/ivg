@@ -15,7 +15,7 @@
 <div class="container-fluid">
 
 <div class="filter row "> 
-  <button id="filter_button" class="btn btn-default">Magic Button</button></div>
+  <button id="magic_button" class="btn btn-default">Magic Button</button></div>
 </div>
 
 </div>
@@ -84,13 +84,13 @@ var detailButtonUrlStr = "";
 
 
 
-$("#filter_button").click(function(){
+$("#magic_button").click(function(){
       $.ajax({
             type: "GET",
             url: "query/?",
             dataType: "json",        
             success: function(data) {              
-              drawGraph(data, "left", "query");
+              drawGraph(data, "left");
             },
             error : function(httpReq,status,exception){
                 alert(status+" "+exception);
@@ -100,21 +100,19 @@ $("#filter_button").click(function(){
 
     });
 
-
-
-
 $(".k-button").click(function(){
+      var location = "left2";
+      var urlString = "";
 
-      var location = "left2"
-      $('#k-points tr').each(function() {
-        urlString += "&point=" +$(this).find("td").html();    
+      $("#k-points tr").each(function() {
+        urlString += "&id=" +$(this).find("td").html();    
        });
-       prefix = "kmeans/?";
+       prefix = "kmeans/1/?";
        if(this.id=="k_button_2"){
-         prefix ="record/kmeans_2/?";
+         prefix ="kmeans/2/?";
          location ="left3"
         $('#k-points-2 tr').each(function() {
-        urlString += "&2nd_point=" +$(this).find("td").html();    
+        urlString += "&second_id=" +$(this).find("td").html();    
        });
 
         };
@@ -123,9 +121,9 @@ $(".k-button").click(function(){
            $.ajax({
             type: "GET",
             url: prefix + urlString,
-            dataType: "jsonp",        
+            dataType: "json",        
             success: function(data) {              
-              drawGraph(data, location, urlString, 'groupK', min);
+              drawGraph(data, location);
             },
             error : function(httpReq,status,exception){
                 alert(status+" "+exception);
@@ -134,7 +132,8 @@ $(".k-button").click(function(){
 
 
 
-function drawGraph(source, myPage, urlStr) {
+
+function drawGraph(source, location) {
   //Format A
   var chart;
   nv.addGraph(function() {
@@ -149,11 +148,15 @@ function drawGraph(source, myPage, urlStr) {
 
     chart.xAxis.tickFormat(d3.format('.02f'));
     chart.yAxis.tickFormat(d3.format('.02f'));
+    chart.tooltipContent(function(key,x,y,e,chart) {
+        var id = e["point"]["id"];
+        return "id: <b>" + id + "</b> Count: <b>" + 1 + "</b>" ;
+    });
 
     chart.scatter.onlyCircles(false);
-    var pg = "#test1_" + myPage + " svg";
+    var pg = "#test1_" + location + " svg";
     d3.select(pg)
-        .datum(getData(source,"none"))
+        .datum(getData(source))
         .call(chart);
 
     nv.utils.windowResize(chart.update);
@@ -164,11 +167,9 @@ function drawGraph(source, myPage, urlStr) {
   },function(){
          $(".nv-point").on('click',
                function(){
-                bitstring = $(".xy-tooltip b").html().toString();
-                var selector = "#test1_"+myPage+"+ .kmeans table tbody:last";
-                console.log(selector);
-                //$(selector).append('<tr><td>'+bitstring+'</td></tr>');
-                console.log(bitstring);
+                id = $(".xy-tooltip b").html().toString();
+                var selector = "#test1_"+location+"+ .kmeans table tbody:last";
+                $(selector).append('<tr><td>'+id+'</td></tr>');
            });
 
       });  
@@ -176,122 +177,31 @@ function drawGraph(source, myPage, urlStr) {
 
 
 
-function addOne(d) {
-  d.digit++;
-  console.log(d.digit);
-}
 
 
-
-
-
-function getData(source,group) { //# groups,# points per group
-
-  var algorithm = "nmds" // $("#algorithms").val();
-  if (group == "none") {  //no grouping
-      var data = [{key: "# of same response",values: []}];
-      var objList = source;
-
-      console.log(algorithm);
-      for (i = 0; i < objList.length; i++) {
-        var id = objList[i]["id"];
-        var str = objList[i][algorithm];
-        console.log(str);
-        data[0].values.push({
-            x: parseFloat(str[0]),
-            y: parseFloat(str[1]),
-            size: parseInt(1),
-            shape: 'circle',
-            id: id,
-          });         
-        }
-
-      }        
-
-  
-  else{
-    var k = Object.keys(source["centroids"]).length;
-    var data =[];
-    var centroids = source["centroids"];  
-    for(i=0;i<k;i++){
-
-    values=[];
-    var group_data = source["data"]["group"+i.toString()];
-    for (j = 0; j < group_data.length; j++) {
-       var s = parseInt(group_data[j]["count"]);
-       var origin = group_data[j]["bitstring"]["origin"];
-       var str = group_data[j]["bitstring"][algorithm];
-       if (s >= mincount) {
-         values.push({
-            x: parseFloat(str.split(",")[0]),
-            y: parseFloat(str.split(",")[1]),
-            size: s,
-            shape: 'circle',
-            bitstring: origin         
-         });        
-       }
-    }
-    data.push({"key":"k"+i.toString(), "values":values});
-
-
-    }
-
-    for (i = 0; i < k; i++) {
-          var str = centroids["group"+i.toString()]["coordinate"];
-          console.log(str);    
-          data[i].values.push({
-            x: parseFloat(str[0]),
-            y: parseFloat(str[1]),
-            size: parseInt(centroids["group"+i.toString()]["avg_count"]),
-            shape:"square",
-
-         });       
-       
-
-    }
-
-}
-  if(algorithm=="nmds"){
-  data.push({key:"bar",values:[
-                    {x: parseFloat("0.745"),
-                    y: parseFloat("0.775"),
-                    size: 0,
-                    shape:"square",},
-                    {x: parseFloat("-0.775"),
-                    y: parseFloat("-0.725"),
-                    size: 0,
-                    shape:"square",}]
-                    })                   
-  }else if(algorithm=="mds"){
-   data.push({key:"bar",values:[
-                    {x: parseFloat("2.365"),
-                    y: parseFloat("2.495"),
-                    size: 0,
-                    shape:"square",},
-                    {x: parseFloat("-2.50"),
-                    y: parseFloat("-2.40"),
-                    size: 0,
-                    shape:"square",}]
-                    })                   
-  
-}
-  else if(algorithm=="pca"){
-data.push({key:"bar",values:[
-                    {x: parseFloat("1.765"),
-                    y: parseFloat("1.285"),
-                    size: 0,
-                    shape:"square",},
-                    {x: parseFloat("-1.515"),
-                    y: parseFloat("-1.485"),
-                    size: 0,
-                    shape:"square",}]
-                    })                   
-  
-}
+function getData(source, group, mincount) { //# groups,# points per group
+      //var algorithm = $("#algorithms").val();
+      var data = [];
+      var group_data = source["data"]["groups"];
+      for(j=0; j< group_data.length; j++){
+                  data.push({key: "cluster "+j,values: []}) 
+                  for (i = 0; i < group_data[j].length; i++) {
+                                  var myid  = group_data[j][i]["_id"];
+                                  var coordinate = group_data[j][i]["nmds"];
+                                  //var size = parseInt(objList[i]["count"]);
+                                  data[j].values.push({
+                                  "x": parseFloat(coordinate[0]),
+                                  "y": parseFloat(coordinate[1]),
+                                  //size: parseInt(objList[i]["count"]),
+                                  "shape": "circle",
+                                  "id": myid,
+                                  });         
+                                  }
+                }
+ 
  
   return data;
 }
-
 
 
 </script>

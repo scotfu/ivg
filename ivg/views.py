@@ -71,8 +71,10 @@ class CaseQueryView(MethodView):
                 ,'success':'false'}
                 
         ec = CustomEncoder()
-        data['data']['groups'].append(case_query(case_name, algorithm))
+        all_points, margin = case_query(case_name, algorithm)
+        data['data']['groups'].append(all_points)
         data['success'] = 'true'
+        data['data']['margin'] =margin
         return ec.encode(data)
     def post(self):
         return redirect(url_for('index'))            
@@ -83,17 +85,15 @@ class KmeansView(MethodView):
         selected_points = list(set(request.values.getlist("id")))
         second_selected_points = list(set(request.values.getlist("second_id")))
         algorithm = request.args.get('algorithm','nmds')
-        
         data = {'data':{'groups':[], 'margin':[]}
                 ,'success':'false'}
         
-        all_points = get_all_points(case_name, algorithm)
+#        all_points = get_all_points(case_name, algorithm)
 
         if step == '1':
             
-            cluster_matrix, centroids = kmeans_query(case_name, selected_points, algorithm)
+            cluster_matrix, centroids, all_points, margin = kmeans_query(case_name, selected_points, algorithm)
             group_data = [[] for i in range(len(centroids))]
-            print cluster_matrix
             for point_pos in range(len(all_points)):
                 k = 0
                 while True:
@@ -103,12 +103,13 @@ class KmeansView(MethodView):
                         k += 1
                 group_data[k].append(all_points[point_pos])
             data['data']['groups'] = group_data
+            data['data']['margin'] = margin
             data['success'] = 'true'
             return json.dumps(data)
         else:
             
             #get result of first step k-means
-            cluster_matrix, centroids, all_points = kmeans2_query(case_name,selected_points, second_selected_points, algorithm)
+            cluster_matrix, centroids, all_points, margin = kmeans2_query(case_name,selected_points, second_selected_points, algorithm)
             group_data = [[] for i in range(len(centroids))]
 
             for point_pos in range(len(all_points)):
@@ -121,6 +122,7 @@ class KmeansView(MethodView):
                 group_data[k].append(all_points[point_pos])
             data['data']['groups'] = group_data
             data['success'] = 'true'
+            data['data']['margin'] = margin
             return json.dumps(data)
             
 

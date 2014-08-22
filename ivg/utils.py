@@ -148,26 +148,43 @@ class CustomEncoder(json.JSONEncoder):
 def case_query(collection_name, algorithm):
     db = get_db()
     collection = db[collection_name]
-    return [point for point in list(collection.find({}, {'_id':1, algorithm:1}))]
+    all_points = list(collection.find({}, {'_id':1, algorithm:1}))
+    all_points_only_coor =   [point.get(algorithm) for point in all_points]
+    max_x = max([ point[0] for point in all_points_only_coor])
+    max_y = max([ point[1] for point in all_points_only_coor])
+    min_x = min([ point[0] for point in all_points_only_coor])
+    min_y = min([ point[1] for point in all_points_only_coor])
+    margin = [[max_x,max_y],[min_x,min_y]]
+
+    return all_points, margin
 
 
 
 def kmeans_query(collection_name, selected_points, algorithm):
     db = get_db()
     collection = db[collection_name]
-    points =[point.get(algorithm) for point in list(collection.find({}, {'_id':0, algorithm:1}))]
+    all_points = list(collection.find({}, {'_id':1, algorithm:1}))
+    points =[point.get(algorithm) for point in all_points]
     selected_points = map(lambda x: int(x), selected_points)
-    centroids =[point.get(algorithm) for point in list(collection.find({'_id':{'$in':selected_points}}, {'_id':0, algorithm:1}))]
-
-    return KMeans(points, centroids)
+    selected_points =[point.get(algorithm) for point in list(collection.find({'_id':{'$in':selected_points}}, {'_id':1, algorithm:1}))]
+    cluster_matrix, centroids = KMeans(points, selected_points)
+    all_points_only_coor =   [point.get(algorithm) for point in all_points]
+    max_x = max([ point[0] for point in all_points_only_coor])
+    max_y = max([ point[1] for point in all_points_only_coor])
+    min_x = min([ point[0] for point in all_points_only_coor])
+    min_y = min([ point[1] for point in all_points_only_coor])
+    margin = [[max_x,max_y],[min_x,min_y]]
+    
+    return cluster_matrix, centroids, all_points, margin
 
     
 def kmeans2_query(collection_name, selected_points, second_selected_points, algorithm):
     db = get_db()
     collection = db[collection_name]
-    cluster_matrix, centroids = kmeans_query(collection_name, selected_points, algorithm)
-    all_points =[point for point in list(collection.find({}, {'_id':1, algorithm:1}))]
+    cluster_matrix, centroids, _, nothing = kmeans_query(collection_name, selected_points, algorithm)
+    all_points =list(collection.find({}, {'_id':1, algorithm:1}))
     #test which cluster it is
+    print len(all_points)
     one_point = int(second_selected_points[0])
     temp_k = 0
     while True:
@@ -175,16 +192,23 @@ def kmeans2_query(collection_name, selected_points, second_selected_points, algo
             break
         else:
             temp_k += 1
-    print temp_k
-    print cluster_matrix[temp_k]
+#    print temp_k
+#    print cluster_matrix[temp_k]
     all_points = [ all_points[i] for i in range(len(all_points))  if cluster_matrix[temp_k][i] == 1 ]
-    print all_points
+    print len(all_points)
+#    print all_points
     second_selected_points = map(lambda x: int(x), second_selected_points)
-    second_selected_points =[point.get(algorithm) for point in list(collection.find({'_id':{'$in':second_selected_points}}, {'_id':0, algorithm:1}))]
+    second_selected_points =[point.get(algorithm) for point in list(collection.find({'_id':{'$in':second_selected_points}}, {'_id':1, algorithm:1}))]
     all_points_only_coor =   [point.get(algorithm) for point in all_points]
+    max_x = max([ point[0] for point in all_points_only_coor])
+    max_y = max([ point[1] for point in all_points_only_coor])
+    min_x = min([ point[0] for point in all_points_only_coor])
+    min_y = min([ point[1] for point in all_points_only_coor])
+    margin = [[max_x,max_y],[min_x,min_y]]
+    
     cluster_matrix, centroids = KMeans(all_points_only_coor, second_selected_points)
-
-    return cluster_matrix, centroids, all_points
+    print len(all_points), margin
+    return cluster_matrix, centroids, all_points, margin
     
 
 def get_all_points(collection_name, algorithm, second_selected_points=None):
@@ -202,6 +226,7 @@ def kmeans_2_query(collection_name):
     return ec.encode(list(collection.find({}, {'coordinate' : 0 })))
 
 
+    
 
 #kmeans part starts
     
@@ -243,11 +268,13 @@ def assignment(points, centroids):
 def update_centroids(points, cluster_matrix):
     new_centroids = []
     dimension = len(points[0])
+    print cluster_matrix
     for cluster in cluster_matrix:
         coordinate = [0 for i in range(dimension)]
         for position in range(len(cluster)):
             if cluster[position] == 1:
                coordinate = map(sum, zip(coordinate, points[position]))
+
         count = float(cluster.count(1))
         mean = map(lambda x:x/count, coordinate)
         new_centroids.append(mean)    

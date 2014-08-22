@@ -10,36 +10,6 @@
 
 <title>Vis Binary Data</title>
 <title>Quadtree</title>
-<style>
-
-.point {
-  fill: #999;
-  stroke: #fff;
-}
-
-.point.scanned {
-  fill: orange;
-  fill-opacity: 1;
-  stroke: brown;
-}
-
-.point.selected {
-  fill: red;
-  fill-opacity: 1;
-}
-
-.node {
-  fill: none;
-  stroke: #ccc;
-  shape-rendering: crispEdges;
-}
-
-.brush .extent {
-  stroke: #fff;
-  fill-opacity: .125;
-  shape-rendering: crispEdges;
-}
-</style>
 </head>
 
 <body>
@@ -120,17 +90,12 @@
 
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
 <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
-<script src="http://d3js.org/d3.v3.min.js"></script>
 
+<script src="/static/js/d3.v3.js"></script>
 <script src="/static/js/nv.d3.js"></script>
 
 
 <script>
-var detailButtonBitStr = "";
-var detailButtonUrlStr = "";
-
-
-
 $("#magic_button").click(function(){
       var algorithm = $("#algorithm").val();
 
@@ -140,6 +105,7 @@ $("#magic_button").click(function(){
             dataType: "json",        
             success: function(data) {              
               drawGraph(data, "left");
+
             },
             error : function(httpReq,status,exception){
                 alert(status+" "+exception);
@@ -204,51 +170,10 @@ function drawGraph(source, location) {
 
     chart.scatter.onlyCircles(false);
     var pg = "#test1_" + location + " svg";
-
-var defaultExtent = [[100, 100], [300, 300]]
-var brush = d3.svg.brush()
-    .extent(defaultExtent)
-    .on("brush", brushed)
-    .on("brushend", brushended);
-
-
     d3.select(pg)
         .datum(getData(source))
-        .call(chart)
-        .attr("class", "brush")
-        .call(brush)
-        .call(brush.event);
-var point = d3.select(".nv-point")
-var quadtree = d3.geom.quadtree()
-    .extent([[-1, -1], [width + 1, height + 1]])
-    (data);
-function brushed() {
-  var extent = brush.extent();
-  point.each(function(d) { d.selected = false; });
-  search(quadtree, extent[0][0], extent[0][1], extent[1][0], extent[1][1]);
-  point.classed("selected", function(d) { return d.selected; });
-}
-
-function brushended() {
-  if (!d3.event.sourceEvent) return; // only transition after input
-  d3.select(this).transition()
-      .duration(brush.empty() ? 0 : 750)
-      .call(brush.extent(defaultExtent))
-      .call(brush.event);
-}
-
-// Find the nodes within the specified rectangle.
-function search(quadtree, x0, y0, x3, y3) {
-  quadtree.visit(function(node, x1, y1, x2, y2) {
-    var p = node.point;
-    if (p) p.selected = (p[0] >= x0) && (p[0] < x3) && (p[1] >= y0) && (p[1] < y3);
-    return x1 >= x3 || y1 >= y3 || x2 < x0 || y2 < y0;
-  });
-}
-
-
+        .call(chart);
     nv.utils.windowResize(chart.update);
-
     chart.dispatch.on('stateChange', function(e) { ('New State:', JSON.stringify(e)); });
 
     return chart;
@@ -303,7 +228,7 @@ function getData(source, group, mincount) { //# groups,# points per group
                                   }
 
 
- 
+
  
   return data;
 }

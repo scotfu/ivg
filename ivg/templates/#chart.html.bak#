@@ -9,21 +9,7 @@
 
 
 <title>Vis Binary Data</title>
-
-<style>
-
-.nv-point.selected {
-  fill: black;
-}
-
-.brush .extent {
-  fill-opacity: .1;
-  stroke: #fff;
-  shape-rendering: crispEdges;
-}
-
-</style>
-
+<title>Quadtree</title>
 </head>
 
 <body>
@@ -54,40 +40,24 @@
 
       <div class="row">
 
-        <div id="test1_left" class="with-3d-shadow with-transitions col-md-8"  style="height:500px">
+        <div id="test1_left" class="with-3d-shadow with-transitions col-md-8"  style="height:1000px">
           <svg></svg>
         </div>
 
 
       <div class="kmeans col-md-3">
 
-          <table id="k-points" class="table">
-           <tbody></tbody>
+  <table id="k-points" class="table">
+  <tbody></tbody>
   
-             </table>
-
-    <div class="col-md-3 form-group">
-       <button id="k_button" class="btn btn-default k-button">K-Means</button>
-      </div>
-
-   <div class="form-group col-md-2">
-       <button id="b_button" class="btn btn-default b-button" onclick="enable_brush('#test1_left')">Enable Brush</button>
-
-    </div>
-
-   </div>
-
-
+  </table>
+ <div class="col-md-1 form-group">
+  <button id="k_button" class="btn btn-default k-button">K-Means</button></div>
+</div>
        </div>
-
-        <div id="barChart1" class="with-3d-shadow with-transitions col-md-10"  style="height:500px">
-          <svg></svg>
-        </div>
-
-
       </div>
 
-
+</div>
 
 
   <div class="container-fluid">
@@ -126,9 +96,6 @@
 
 
 <script>
-var width = 500;
-var height = 1217;
-
 $("#magic_button").click(function(){
       var algorithm = $("#algorithm").val();
 
@@ -180,17 +147,10 @@ $(".k-button").click(function(){
 
 
 
-
-function scale_convert(coordinate)
- {
-  var x = d3.scale.linear(coordinate[0][0]);
-  var y = d3.scale.linear().domain([0,height]).range([-0.49,0.62]);
-  return coordinate;
-
- }
-
-
- function mouseClick()
+function drawGraph(source, location) {
+  //Format A
+  var chart;
+  function mouseClick()
  {
 
   var coordinates = d3.mouse(this);
@@ -202,87 +162,14 @@ function scale_convert(coordinate)
 
 
 
-
-function enable_brush(location){
-
-
-
-var brush = d3.svg.brush()
-    .x(d3.scale.identity().domain([0, height]))
-    .y(d3.scale.identity().domain([0, width]))
-    .extent([[100, 100], [200, 200]])
-    .on("brush", brushed)
-    .on("brushend", brushended);
-
-
-function brushed(){
-          var extent = brush.extent();
-          points = d3.select(location).selectAll(".nv-point"); 
-          points.classed("selected", function(d) {
-            
-//            console.log(d);
-            return true
-
-          });
-        }
-
-
-
-function brushended(){
-      ids = []
-      $(location+ " .nv-point.selected").each(function(point){
-
-           ids.push($(this).attr("class").split("-")[3].split(" ")[0]);
-
-        });
-      ids =ids.join("&id=");
-//      console.log(ids)
-      $.ajax({
-            type: "GET",
-            url: "aggregation/?id="+ids,
-            dataType: "json",        
-            success: function(data) {              
-//               console.log(data);
-                 barChart(data,"");
-
-            },
-            error : function(httpReq,status,exception){
-                alert(status+" "+exception);
-            }
-          });
-
-}
-
-   
-
-d3.select(location+" svg").append("g")
-//         .on("click",mouseClick)
-      .attr("class", "brush")
-      .attr("transform", "translate(75,30)")
-      .call(brush)
-//      .call(brush.event);  
-
-}
-
-
-
-function drawGraph(source, location) {
-
-
-  var chart;
-
- 
-
   nv.addGraph(function() {
     chart = nv.models.scatterChart()
-//                  .showXAxis(false)
-//                  .showYAxis(false)
                   .showDistX(false)
                   .showDistY(false)
                   .useVoronoi(false)
                   .color(d3.scale.category10().range())
                   .transitionDuration(300)
-  
+                  .height(1000);
                   ;
 
     chart.xAxis.tickFormat(d3.format('.02f'));
@@ -297,8 +184,12 @@ function drawGraph(source, location) {
     d3.selectAll(pg + "> *").remove();//clear the svg
     d3.select(pg)
         .datum(getData(source))
-        .call(chart)
-    
+         .on("click",mouseClick)
+        .call(chart);
+//brush
+
+
+
 
 
     nv.utils.windowResize(chart.update);
@@ -325,8 +216,6 @@ function getData(source, group, mincount) { //# groups,# points per group
       var data = [];
       var group_data = source["data"]["groups"];
       var margin = source["data"]["margin"];
-
-
       for(j=0; j< group_data.length; j++){
                   data.push({key: "cluster "+j,values: []});
                   for (i = 0; i < group_data[j].length; i++) {
@@ -342,8 +231,10 @@ function getData(source, group, mincount) { //# groups,# points per group
                                   });         
                                   }
                 }
+                        console.log(margin.length);
+      console.log(group_data.length);
 
-      data.push({key: "margin ", values: []});
+     data.push({key: "margin ", values: []});
         for (i = 0; i < margin.length; i++) {
                                   var coordinate = margin[i];
                                   //var size = parseInt(objList[i]["count"]);
@@ -356,44 +247,12 @@ function getData(source, group, mincount) { //# groups,# points per group
                                   }
 
 
+
  
   return data;
 }
 
-function reformData(data) {
-  result =   [{
-      key: "bar chart",
-      values: []}]
-   console.log(data)
-  for (i = 0; i < data.length; i++) {
-                  result[0].values.push({
-                                  "value": parseFloat(data[i]),
-                                  "label": "dimension "+ i,
-                                  });         
-                                  }
-return result
-}
 
-function barChart(data,location){
-
-var chart = nv.models.discreteBarChart()
-      .x(function(d) { return d.label })    //Specify the data accessors.
-      .y(function(d) { return d.value })
-      .staggerLabels(true)    //Too many bars and not enough room? Try staggering labels.
-      .tooltips(false)        //Don't show tooltips
-      .showValues(false)       //...instead, show the bar value right on top of each bar.
-      .transitionDuration(350)
-      ;
-
-  d3.select('#barChart1 svg')
-      .datum(reformData(data))
-      .call(chart);
-
-  nv.utils.windowResize(chart.update);
-
-  return chart;
-
-}
 
 
 </script>

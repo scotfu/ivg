@@ -49,10 +49,10 @@ def get_collections():
 
     return db.collection_names()
         
-def csv_handler(file_name,colletion_name):
+def csv_handler(file_name,collection_name):
     data_set = []
     db = get_db()
-    collection = db[colletion_name]
+    collection = db[collection_name]
     with open(file_name) as file_handler:
         reader = csv.reader(file_handler)
         header = reader.next()
@@ -79,7 +79,7 @@ def csv_handler(file_name,colletion_name):
             
 #   run_mds(file_name)           
 
-#def run_mds(colletion_name):
+
     import numpy as np
     from sklearn import manifold
     from sklearn.metrics import euclidean_distances
@@ -88,7 +88,7 @@ def csv_handler(file_name,colletion_name):
     seed = np.random.RandomState(seed=3)
     #X_true = seed.randint(0, 20, 2 * n_samples).astype(np.float)
     #print X_true
-#    data_set = colletion.
+
     X_true = data_set[:MAX]
 #X_true = X_true.reshape((n_samples, 2))
 #print X_true
@@ -217,9 +217,20 @@ def kmeans_2_query(collection_name):
     ec = CustomEncoder()
     return ec.encode(list(collection.find({}, {'coordinate' : 0 })))
 
-
-    
-
+def aggregation(collection_name, ids):
+    db = get_db()
+    collection = db[collection_name]
+    ids = map(lambda x: int(x), ids)
+    points = list(collection.find({'_id':{'$in':ids}}, {'coordinate':1}))
+    n = float(len(points))
+    dimension = len(points[0]['coordinate'])
+    data = [0] * dimension
+    for point in points:
+        for i in range(dimension):
+            data[i] += point['coordinate'][i]
+    data = map(lambda x: x/n, data)
+    print "dimention ",dimension
+    return data
 #kmeans part starts
     
 #watch out: float flaw 

@@ -126,8 +126,8 @@
 
 
 <script>
-var width = 500;
-var height = 1217;
+var width = 420+3;
+var height = 1145+3;
 
 $("#magic_button").click(function(){
       var algorithm = $("#algorithm").val();
@@ -216,12 +216,22 @@ var brush = d3.svg.brush()
 
 
 function brushed(){
+          chart = nv.graphs[0];
           var extent = brush.extent();
           points = d3.select(location).selectAll(".nv-point"); 
+
+          x = chart.xAxis.scale().domain() //to height
+          y = chart.yAxis.scale().domain()//to width
+          extent[0][0] = extent[0][0]/height *(x[1]-x[0]) +x[0]
+          extent[0][1] = (width-extent[0][1])/width *(y[1]-y[0]) +y[0]
+          extent[1][0] = extent[1][0]/height *(x[1]-x[0]) +x[0]
+          extent[1][1] = (width-extent[1][1])/width *(y[1]-y[0]) +y[0]
+          console.log(extent)
           points.classed("selected", function(d) {
-            
-//            console.log(d);
-            return true
+                return extent[0][0] <= d.x && d.x <= extent[1][0]
+                && extent[1][1] <= d.y && d.y <= extent[0][1];
+            console.log(d);
+
 
           });
         }
@@ -247,7 +257,7 @@ function brushended(){
 
             },
             error : function(httpReq,status,exception){
-                alert(status+" "+exception);
+//                alert(status+" "+exception);
             }
           });
 
@@ -258,7 +268,7 @@ function brushended(){
 d3.select(location+" svg").append("g")
 //         .on("click",mouseClick)
       .attr("class", "brush")
-      .attr("transform", "translate(75,30)")
+      .attr("transform", "translate(73,28)")
       .call(brush)
 //      .call(brush.event);  
 
@@ -299,7 +309,7 @@ function drawGraph(source, location) {
         .datum(getData(source))
         .call(chart)
     
-
+//    console.log()
 
     nv.utils.windowResize(chart.update);
     chart.dispatch.on('stateChange', function(e) { ('New State:', JSON.stringify(e)); });
@@ -364,7 +374,7 @@ function reformData(data) {
   result =   [{
       key: "bar chart",
       values: []}]
-   console.log(data)
+
   for (i = 0; i < data.length; i++) {
                   result[0].values.push({
                                   "value": parseFloat(data[i]),

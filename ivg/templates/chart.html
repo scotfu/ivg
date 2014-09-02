@@ -54,7 +54,7 @@
 
       <div class="row">
 
-        <div id="test1_left" class="with-3d-shadow with-transitions col-md-8"  style="height:500px">
+        <div id="test1_left" class="with-3d-shadow with-transitions col-md-8"  style="height:960px">
           <svg></svg>
         </div>
 
@@ -126,7 +126,7 @@
 
 
 <script>
-var width = 420+3;
+var width = 880+3;
 var height = 1145+3;
 
 $("#magic_button").click(function(){
@@ -205,8 +205,6 @@ function scale_convert(coordinate)
 
 function enable_brush(location){
 
-
-
 var brush = d3.svg.brush()
     .x(d3.scale.identity().domain([0, height]))
     .y(d3.scale.identity().domain([0, width]))
@@ -272,6 +270,16 @@ d3.select(location+" svg").append("g")
       .call(brush)
 //      .call(brush.event);  
 
+$("#b_button").html("Disable Brush")
+$("#b_button").attr("onclick", "disbale_brush('#test1_left')")
+}
+
+
+function disbale_brush(location){
+
+d3.selectAll(location + " .brush").remove();//clear the svg
+$("#b_button").attr("onclick", "enable_brush('#test1_left')")
+$("#b_button").html("Enable Brush")
 }
 
 

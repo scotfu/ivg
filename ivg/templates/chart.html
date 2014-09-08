@@ -12,7 +12,13 @@
 
 <style>
 
+
+.link {
+  stroke: #999;
+}
 .nv-point.selected {
+  stroke: red;
+
   fill: black;
 }
 
@@ -75,14 +81,16 @@
 
     </div>
 
+
    </div>
 
 
-       </div>
-
-        <div id="barChart1" class="with-3d-shadow with-transitions col-md-10"  style="height:500px">
+        <div id="barChart1" class="with-3d-shadow with-transitions col-md-4"  style="height:880px">
           <svg></svg>
         </div>
+
+       </div>
+
 
 
       </div>
@@ -211,8 +219,8 @@ var brush = d3.svg.brush()
     .extent([[100, 100], [200, 200]])
     .on("brush", brushed)
     .on("brushend", brushended);
-
-
+brushed();
+brushended();
 function brushed(){
           chart = nv.graphs[0];
           var extent = brush.extent();
@@ -394,10 +402,10 @@ return result
 
 function barChart(data,location){
 
-var chart = nv.models.discreteBarChart()
+var chart = nv.models.multiBarHorizontalChart()
       .x(function(d) { return d.label })    //Specify the data accessors.
       .y(function(d) { return d.value })
-      .staggerLabels(true)    //Too many bars and not enough room? Try staggering labels.
+//      .staggerLabels(true)    //Too many bars and not enough room? Try staggering labels.
       .tooltips(false)        //Don't show tooltips
       .showValues(false)       //...instead, show the bar value right on top of each bar.
       .transitionDuration(350)

@@ -228,15 +228,11 @@ function brushed(){
 
           x = chart.xAxis.scale().domain() //to height
           y = chart.yAxis.scale().domain()//to width
-          extent[0][0] = extent[0][0]/height *(x[1]-x[0]) +x[0]
-          extent[0][1] = (width-extent[0][1])/width *(y[1]-y[0]) +y[0]
-          extent[1][0] = extent[1][0]/height *(x[1]-x[0]) +x[0]
-          extent[1][1] = (width-extent[1][1])/width *(y[1]-y[0]) +y[0]
-          console.log(extent)
-          points.classed("selected", function(d) {
-                return extent[0][0] <= d.x && d.x <= extent[1][0]
-                && extent[1][1] <= d.y && d.y <= extent[0][1];
-            console.log(d);
+          points.classed("selected", function() {
+                d = d3.transform($(this).attr("transform")).translate;
+
+                return extent[0][0] <= d[0] && d[0] <= extent[1][0]&& extent[0][1] <= d[1] && d[1] <= extent[1][1];
+                
 
 
           });
@@ -274,7 +270,7 @@ function brushended(){
 d3.select(location+" svg").append("g")
 //         .on("click",mouseClick)
       .attr("class", "brush")
-      .attr("transform", "translate(73,28)")
+      .attr("transform", "translate(75,30)")
       .call(brush)
 //      .call(brush.event);  
 
@@ -362,6 +358,8 @@ function getData(source, group, mincount) { //# groups,# points per group
                                   data[j].values.push({
                                   "x": parseFloat(coordinate[0]),
                                   "y": parseFloat(coordinate[1]),
+                                  "width":1,
+                                  "height:":2,
                                   //size: parseInt(objList[i]["count"]),
                                   "shape": "circle",
                                   "id": myid,

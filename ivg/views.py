@@ -85,9 +85,9 @@ class AggregationView(MethodView):
     def get(self,case_name):
         ec = CustomEncoder()
         points = list(set(request.values.getlist("id")))
-        data, header = aggregation(case_name, points)
-        data = zip(header,data)
-        print data
+        points,max_height, header = aggregation(case_name, points)
+        points = zip(header,points)
+        data = {'dimensions':points, 'max_height':max_height}
         return ec.encode(data)
     def post(self):
         return redirect(url_for('index'))            

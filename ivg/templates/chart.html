@@ -60,7 +60,7 @@
 
       <div class="row">
 
-        <div id="test1_left" class="with-3d-shadow with-transitions col-md-8"  style="height:960px">
+        <div id="test1_left" class="with-3d-shadow with-transitions col-md-8"  style="height:880px">
           <svg></svg>
         </div>
 
@@ -77,17 +77,25 @@
       </div>
 
    <div class="form-group col-md-2">
-       <button id="b_button" class="btn btn-default b-button" onclick="enable_brush('#test1_left')">Enable Brush</button>
+       <button id="b_button1" class="btn btn-default b-button" onclick="enable_brush('#test1_left')">Enable Brush</button>
 
     </div>
 
+   <div class="form-group col-md-2">
+       <button id="b_button2" class="btn btn-default b-button" onclick="enable_brush('#test1_left')">Enable Brush</button>
+
+    </div>
 
    </div>
 
 
-        <div id="barChart1" class="with-3d-shadow with-transitions col-md-4"  style="height:880px">
+        <div id="barChart1" class="with-3d-shadow with-transitions col-md-2"  style="height:820px">
           <svg></svg>
         </div>
+        <div id="barChart2" class="with-3d-shadow with-transitions col-md-2"  style="height:820px">
+          <svg></svg>
+        </div>
+
 
        </div>
 
@@ -134,7 +142,7 @@
 
 
 <script>
-var width = 880+3;
+var width = 800+3;
 var height = 1145+3;
 
 $("#magic_button").click(function(){
@@ -387,12 +395,17 @@ function getData(source, group, mincount) { //# groups,# points per group
 function reformData(data) {
   result =   [{
       key: "bar chart",
-      values: []}]
+      values: []},
+//                        {
+//      key: "bargin",
+//      values: [{"value":data["max_height"]}]}
 
-  for (i = 0; i < data.length; i++) {
+      ]
+
+  for (i = 0; i < data["dimensions"].length; i++) {
                   result[0].values.push({
-                                  "value": parseFloat(data[i]),
-                                  "label": "dimension "+ i,
+                                  "value": parseFloat(data["dimensions"][i][1]),
+                                  "label": ""+ data["dimensions"][i][0],
                                   });         
                                   }
 return result

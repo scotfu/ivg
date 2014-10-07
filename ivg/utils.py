@@ -234,7 +234,11 @@ def aggregation(collection_name, ids):
             data[i] += point['coordinate'][i]
     data = map(lambda x: x/n, data)
     header = db['fsc_case'].find({'name':collection_name})[0].get('header')
-    return data, header
+    height = list(collection.find({}, {'coordinate':1}))
+    max_height = 0
+    for coor in height:
+        max_height = max(max_height, max(coor['coordinate']))
+    return data, max_height,  header
 #kmeans part starts
     
 #watch out: float flaw 

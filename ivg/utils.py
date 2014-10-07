@@ -46,13 +46,16 @@ def close_db(error):
 
 def get_collections():
     db = get_db()
-
-    return db.collection_names()
+    cases = list(db['fsc_case'].find())
+    case_names = [case.get('name') for case in cases]
+    return case_names
         
 def csv_handler(file_name,collection_name):
     data_set = []
     db = get_db()
     collection = db[collection_name]
+    case_collection = db['fsc_case']
+    numeric_headers = []
     with open(file_name) as file_handler:
         reader = csv.reader(file_handler)
         header = reader.next()
@@ -64,7 +67,7 @@ def csv_handler(file_name,collection_name):
                 try:
                     row[column] = float(row[column])
                     data['coordinate'].append(row[column])
-
+                    numeric_headers.append(header[column])
                 except ValueError:
                     data[header[column]] = row[column]
             data_set.append(data['coordinate'])        
@@ -76,7 +79,7 @@ def csv_handler(file_name,collection_name):
             if count >= MAX:
                 break
             count += 1
-            
+                
 #   run_mds(file_name)           
 
 
@@ -131,8 +134,9 @@ def csv_handler(file_name,collection_name):
                             'pca' : list(X_true[n]), 
                            }
                           })
+    case_collection.insert({'name':collection_name, 'header':numeric_headers})
 
- 
+
 class CustomEncoder(json.JSONEncoder):
     """A C{json.JSONEncoder} subclass to encode documents that have fields of
     type C{bson.objectid.ObjectId}, C{datetime.datetime}
@@ -229,8 +233,8 @@ def aggregation(collection_name, ids):
         for i in range(dimension):
             data[i] += point['coordinate'][i]
     data = map(lambda x: x/n, data)
-    print "dimention ",dimension
-    return data
+    header = db['fsc_case'].find({'name':collection_name})[0].get('header')
+    return data, header
 #kmeans part starts
     
 #watch out: float flaw 

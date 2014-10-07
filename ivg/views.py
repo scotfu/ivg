@@ -85,7 +85,9 @@ class AggregationView(MethodView):
     def get(self,case_name):
         ec = CustomEncoder()
         points = list(set(request.values.getlist("id")))
-        data = aggregation(case_name, points)
+        data, header = aggregation(case_name, points)
+        data = zip(header,data)
+        print data
         return ec.encode(data)
     def post(self):
         return redirect(url_for('index'))            
@@ -139,13 +141,4 @@ class KmeansView(MethodView):
             
 
     def post(self):
-        return redirect(url_for('index'))            
-
-        
-
-        
-        
-        
-
-        
-            
+        return redirect(url_for('index'))

@@ -27,7 +27,7 @@
   stroke: #fff;
   shape-rendering: crispEdges;
 }
-
+.nvtooltip { margin-left: 550px; }
 </style>
 
 </head>
@@ -77,6 +77,7 @@
 
 
             <svg id="barChart1" class="with-3d-shadow with-transitions col-md-2 "  style="height:820px"></svg>
+            <svg id="histogram1" class="with-3d-shadow with-transitions col-md-2 "  style="height:820px"></svg>
 
 
       </div>
@@ -101,7 +102,7 @@
 
 
             <svg id="barChart2" class="with-3d-shadow with-transitions col-md-2 "  style="height:820px"></svg>
-
+            <svg id="histogram2" class="with-3d-shadow with-transitions col-md-2 "  style="height:820px"></svg>
 
       </div>
 
@@ -118,7 +119,7 @@
 
 
             <svg id="barChart3" class="with-3d-shadow with-transitions col-md-2 "  style="height:820px"></svg>
-
+            <svg id="histogram3" class="with-3d-shadow with-transitions col-md-2 "  style="height:820px"></svg>
 
       </div>
 
@@ -410,8 +411,9 @@ function reformData(data) {
 
   for (i = 0; i < data["dimensions"].length; i++) {
                   result[0].values.push({
+                                  "dimension":i.toString(),
                                   "value": parseFloat(data["dimensions"][i][1]),
-                                  "label": ""+ data["dimensions"][i][0],
+                                  "label": data["dimensions"][i][0],
                                   });         
                                   }
 return result
@@ -419,25 +421,113 @@ return result
 
 function barChart(data,loc){
 
-var chart = nv.models.multiBarHorizontalChart()
+var chart;
+nv.addGraph(function() {
+      chart = nv.models.multiBarHorizontalChart()
       .x(function(d) { return d.label })    //Specify the data accessors.
       .y(function(d) { return d.value })
-//      .staggerLabels(true)    //Too many bars and not enough room? Try staggering labels
-      .tooltips(false)        //Don't show tooltips
+      .tooltips(true)        //Don't show tooltips
       .showLegend(false)
       .showControls(false)
       .showValues(false)       //...instead, show the bar value right on top of each bar
       .transitionDuration(350)
       .margin({top: 5, right: 55, bottom: 15, left: 5})
       ;
-loc = '#barChart'+ loc.charAt(13);
- d3.select(loc)
+       chart.tooltipContent(function(key,x,y,e,chart) {
+
+
+        return "Dimension: <b>"+e["point"]["dimension"]  + "</b> Count: <b>" + y + "</b>" ;
+    });
+
+
+
+      loc = '#barChart'+ loc.charAt(13);
+      d3.select(loc)
       .datum(reformData(data))
       .call(chart);
 
-  nv.utils.windowResize(chart.update);
+      nv.utils.windowResize(chart.update);
 
-  return chart;
+  return chart;},function(){
+
+          d3.selectAll(".nv-bar").on('click',function(){
+            console.log('test')
+            dimension =  $(".xy-tooltip b").html().toString();
+            $.ajax({
+            type: "GET",
+            url: "histogram/"+dimension+"/",
+            dataType: "json",        
+            success: function(data) {              
+              histogram(data, loc);
+
+            },
+            error : function(httpReq,status,exception){
+                alert(status+" "+exception);
+            }
+          });
+
+
+      });
+
+}
+)
+}
+
+function histogramData(data) {
+
+  result =   [
+{
+      key: "histo",
+      values: []
+           },
+//                        {
+//      key: "bargin",
+//      values: [{"value":data["max_height"]}]}
+
+      ]
+
+  for (i = 0; i < data["counts"].length; i++) {
+                  result[0].values.push({
+
+                                  "x": parseFloat(data["bins"][i]),
+                                  "y": parseFloat(data["counts"][i]),
+                                  "label":parseFloat(data["bins"][i]),
+                                  });         
+                                  }
+return result
+console.log(result)
+}
+
+
+
+function histogram(data,loc){
+
+var chart;
+loc = '#histogram'+loc.charAt(9);;
+
+
+nv.addGraph(function() {
+      chart =  nv.models.multiBarHorizontalChart()
+      .x(function(d) { return d.x })    //Specify the data accessors.
+      .y(function(d) { return d.y })
+//      .staggerLabels(true)    //Too many bars and not enough room? Try staggering labels
+      .tooltips(true)        //Don't show tooltips
+      .showLegend(false)
+      .showControls(false)
+      .showValues(false)       //...instead, show the bar value right on top of each bar
+      .transitionDuration(350)
+      .margin({top: 5, right: 55, bottom: 15, left: 5})
+      ;
+
+
+       d3.select(loc)
+      .datum(histogramData(data))
+      .call(chart);
+
+       nv.utils.windowResize(chart.update);
+
+      return chart;},function(){
+                });
 
 }
 

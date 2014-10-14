@@ -9,7 +9,7 @@ from flask import Flask, request, session, g, redirect, url_for, abort,render_te
 
 
 from . import app
-from .utils import allowed_file, csv_handler, get_collections, case_query, kmeans_query, kmeans2_query, get_all_points, aggregation,CustomEncoder
+from .utils import allowed_file, csv_handler, get_collections, case_query, kmeans_query, kmeans2_query, get_all_points, aggregation, histogram, CustomEncoder
 
 class ListView(View):
 
@@ -92,6 +92,17 @@ class AggregationView(MethodView):
     def post(self):
         return redirect(url_for('index'))            
 
+
+class HistogramView(MethodView):
+
+    def get(self,case_name,dimension):
+        ec = CustomEncoder()
+        counts,bins = histogram(case_name,int(dimension))
+        data = {'counts':counts, 'bins':bins}
+        return ec.encode(data)
+    def post(self):
+        return redirect(url_for('index'))            
+        
         
 class KmeansView(MethodView):
 

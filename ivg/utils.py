@@ -1,9 +1,11 @@
+import datetime
 import json
 import bson
 import csv
 import math
 from bson.objectid import ObjectId
 
+import numpy as np
 
 from pymongo import MongoClient
 from flask import g
@@ -83,7 +85,6 @@ def csv_handler(file_name,collection_name):
 #   run_mds(file_name)           
 
 
-    import numpy as np
     from sklearn import manifold
     from sklearn.metrics import euclidean_distances
     from sklearn.decomposition import PCA
@@ -141,6 +142,7 @@ class CustomEncoder(json.JSONEncoder):
     """A C{json.JSONEncoder} subclass to encode documents that have fields of
     type C{bson.objectid.ObjectId}, C{datetime.datetime}
     """
+
     def default(self, obj):
         if isinstance(obj, bson.objectid.ObjectId):
             return str(obj)
@@ -298,4 +300,13 @@ def KMeans(points,centroids):
     centroids = update_centroids(points, cluster_matrix)
     return cluster_matrix,centroids
     #plot(points, cluster_matrix, centroids)
+
+
+def histogram(collection_name,di=0):
+    db = get_db()
+    collection = db[collection_name]
+    coors = collection.find({},{'coordinate':1})
+    input = [ point.get('coordinate')[di] for point in list(coors) ]
+    counts, bins = np.histogram(input,50)
+    return list(counts), list(bins)
     

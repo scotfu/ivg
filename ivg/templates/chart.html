@@ -33,12 +33,11 @@
 </head>
 
 <body>
-<div class="container-fluid" style="
-    margin-top:10px;"
->
 
-<div class="form-horizontal col-sm-8">
-  <div class="form-group">
+<div class="container-fluid" style="margin-top:10px;">
+<div class="row">
+  <div class="form-horizontal col-sm-8">
+    <div class="form-group">
     <label class="col-sm-2 control-label">Algorithms</label>
     <div class="col-sm-6">
      <select id="algorithm" class="form-control">
@@ -51,12 +50,12 @@
 </div>
 
   <button id="magic_button" class="btn btn-default">Generate a chart</button></div>
-</div>
 
 
 
 
-    <div class="container-fluid">
+
+
 
       <div class="row">
 
@@ -65,40 +64,26 @@
         </div>
 
 
-      <div class="kmeans col-md-3">
+          <div class="col-md-4">
+              <table id="k-points" class="table">
+              <tbody></tbody>
+              </table>
 
-          <table id="k-points" class="table">
-           <tbody></tbody>
-  
-             </table>
-
-    <div class="col-md-3 form-group">
-       <button id="k_button" class="btn btn-default k-button">K-Means</button>
-      </div>
-
-   <div class="form-group col-md-2">
-       <button id="b_button1" class="btn btn-default b-button" onclick="enable_brush('#test1_left')">Enable Brush</button>
-
-    </div>
-
-   <div class="form-group col-md-2">
-       <button id="b_button2" class="btn btn-default b-button" onclick="enable_brush('#test1_left')">Enable Brush</button>
-
-    </div>
-
-   </div>
+            <button id="k_button" class="btn btn-default k-button">K-Means</button>
+            <button id="b_button" class="btn btn-default b-button" onclick="enable_brush('#test1_left')">Enable Brush</button>
+          </div>
 
 
-        <div id="barChart1" class="with-3d-shadow with-transitions col-md-2"  style="height:820px">
-          <svg></svg>
-        </div>
-        <div id="barChart2" class="with-3d-shadow with-transitions col-md-2"  style="height:820px">
-          <svg></svg>
-        </div>
 
+          <div id="barChart1" class="with-3d-shadow with-transitions col-md-2 "  style="height:820px">
+            <svg></svg>
+           </div>
 
-       </div>
+          <div id="barChart1" class="with-3d-shadow with-transitions col-md-2 "  style="height:820px">
 
+           </div>
+
+ 
 
 
       </div>
@@ -106,32 +91,6 @@
 
 
 
-  <div class="container-fluid">
-        <div class="row">
-
-        <div id="test1_left2" class="with-3d-shadow with-transitions col-md-8"  style="height:1000px">
-          <svg></svg>
-        </div>
-
-
-      <div class="kmeans col-md-3">
-
-  <table id="k-points-2" class="table">
-  <tbody></tbody>
-  
-  </table>
- <div class="col-md-1 form-group">
-  <button id="k_button_2" class="btn btn-default k-button">K-Means</button></div>
-</div>
-       </div>
-
-</div>
-  <div class="container-fluid">
-        <div class="row">
-
-        <div id="test1_left3" class="with-3d-shadow with-transitions col-md-8"  style="height:1000px">
-          <svg></svg>
-        </div>
 </div>
 
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>

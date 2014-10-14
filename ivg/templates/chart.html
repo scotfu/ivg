@@ -47,9 +47,11 @@
       </select>
     </div>
   </div>
-</div>
 
-  <button id="magic_button" class="btn btn-default">Generate a chart</button></div>
+  </div>
+  <button id="magic_button" class="btn btn-default">Generate a chart</button>
+
+</div>
 
 
 
@@ -59,34 +61,73 @@
 
       <div class="row">
 
-        <div id="test1_left" class="with-3d-shadow with-transitions col-md-8"  style="height:880px">
+        <div id="scatterChart1" class="with-3d-shadow with-transitions col-md-8"  style="height:880px">
           <svg></svg>
         </div>
 
 
-          <div class="col-md-4">
+          <div class="col-md-4 kmeans">
               <table id="k-points" class="table">
               <tbody></tbody>
               </table>
 
-            <button id="k_button" class="btn btn-default k-button">K-Means</button>
-            <button id="b_button" class="btn btn-default b-button" onclick="enable_brush('#test1_left')">Enable Brush</button>
+            <button  class="btn btn-default k-button" onclick="kmeans('#scatterChart2')">K-Means</button>
+            <button id="b1" class="btn btn-default b-button">Enable Brush</button>
           </div>
 
 
-
-          <div id="barChart1" class="with-3d-shadow with-transitions col-md-2 "  style="height:820px">
-            <svg></svg>
-           </div>
-
-          <div id="barChart1" class="with-3d-shadow with-transitions col-md-2 "  style="height:820px">
-
-           </div>
-
- 
+            <svg id="barChart1" class="with-3d-shadow with-transitions col-md-2 "  style="height:820px"></svg>
 
 
       </div>
+
+
+
+      <div class="row">
+
+        <div id="scatterChart2" class="with-3d-shadow with-transitions col-md-8"  style="height:880px">
+          <svg></svg>
+        </div>
+
+
+          <div class="col-md-4 kmeans">
+              <table id="k-points-2" class="table">
+              <tbody></tbody>
+              </table>
+
+            <button  class="btn btn-default k-button" onclick="kmeans('#scatterChart3')">K-Means</button>
+            <button id="b2" class="btn btn-default b-button">Enable Brush</button>
+          </div>
+
+
+            <svg id="barChart2" class="with-3d-shadow with-transitions col-md-2 "  style="height:820px"></svg>
+
+
+      </div>
+
+
+
+      <div class="row">
+
+        <div id="scatterChart3" class="with-3d-shadow with-transitions col-md-8"  style="height:880px">
+          <svg></svg>
+        </div>
+
+            <button id="b3" class="btn btn-default b-button">Enable Brush</button>
+          
+
+
+            <svg id="barChart3" class="with-3d-shadow with-transitions col-md-2 "  style="height:820px"></svg>
+
+
+      </div>
+
+
+
+
+
+
+
 
 
 
@@ -112,7 +153,7 @@ $("#magic_button").click(function(){
             url: "query/?algorithm="+algorithm,
             dataType: "json",        
             success: function(data) {              
-              drawGraph(data, "left");
+              drawGraph(data, "#scatterChart1");
 
             },
             error : function(httpReq,status,exception){
@@ -122,47 +163,6 @@ $("#magic_button").click(function(){
 
 
     });
-
-$(".k-button").click(function(){
-      var location = "left2";
-      var urlString = "";
-      var algorithm = $("#algorithm").val();
-      $("#k-points tr").each(function() {
-        urlString += "&id=" +$(this).find("td").html();    
-       });
-       prefix = "kmeans/1/?";
-       if(this.id=="k_button_2"){
-         prefix ="kmeans/2/?";
-         location ="left3"
-        $('#k-points-2 tr').each(function() {
-        urlString += "&second_id=" +$(this).find("td").html();    
-       });
-
-        };
-
-
-           $.ajax({
-            type: "GET",
-            url: prefix + urlString+"&algorithm="+algorithm,
-            dataType: "json",        
-            success: function(data) {              
-              drawGraph(data, location);
-            },
-            error : function(httpReq,status,exception){
-                alert(status+" "+exception);
-            }
-          });})
-
-
-
-
-function scale_convert(coordinate)
- {
-  var x = d3.scale.linear(coordinate[0][0]);
-  var y = d3.scale.linear().domain([0,height]).range([-0.49,0.62]);
-  return coordinate;
-
- }
 
 
  function mouseClick()
@@ -176,9 +176,40 @@ function scale_convert(coordinate)
  }
 
 
+function kmeans(location){
+      var location = location
+      var urlString = "";
+      var algorithm = $("#algorithm").val();
 
+      $("#k-points tr").each(function() {
+        urlString += "&id=" +$(this).find("td").html();    
+       });
 
-function enable_brush(location){
+      prefix = "kmeans/1/?";
+      if(location =="#scatterChart3"){
+            prefix ="kmeans/2/?";
+            $('#k-points-2 tr').each(function() {
+                  urlString += "&second_id=" +$(this).find("td").html();    
+                     });
+
+      };
+
+           $.ajax({
+            type: "GET",
+            url: prefix + urlString+"&algorithm="+algorithm,
+            dataType: "json",        
+            success: function(data) {              
+              drawGraph(data, location);
+            },
+            error : function(httpReq,status,exception){
+                alert(status+" "+exception);
+            }
+          })
+
+}
+
+function enable_brush(loc){
+
 
 var brush = d3.svg.brush()
     .x(d3.scale.identity().domain([0, height]))
@@ -186,43 +217,37 @@ var brush = d3.svg.brush()
     .extent([[100, 100], [200, 200]])
     .on("brush", brushed)
     .on("brushend", brushended);
-brushed();
-brushended();
+
+
+
 function brushed(){
           chart = nv.graphs[0];
           var extent = brush.extent();
-          points = d3.select(location).selectAll(".nv-point"); 
-
+          points = d3.select(loc).selectAll(".nv-point"); 
           x = chart.xAxis.scale().domain() //to height
           y = chart.yAxis.scale().domain()//to width
           points.classed("selected", function() {
-                d = d3.transform($(this).attr("transform")).translate;
-
-                return extent[0][0] <= d[0] && d[0] <= extent[1][0]&& extent[0][1] <= d[1] && d[1] <= extent[1][1];
-                
-
-
+          d = d3.transform($(this).attr("transform")).translate;
+          return extent[0][0] <= d[0] && d[0] <= extent[1][0]&& extent[0][1] <= d[1] && d[1] <= extent[1][1];
           });
         }
 
 
-
 function brushended(){
       ids = []
-      $(location+ " .nv-point.selected").each(function(point){
-
+      $(loc+ " .nv-point.selected").each(function(point){
            ids.push($(this).attr("class").split("-")[3].split(" ")[0]);
-
         });
       ids =ids.join("&id=");
 //      console.log(ids)
+if(ids.length>0){
       $.ajax({
             type: "GET",
             url: "aggregation/?id="+ids,
             dataType: "json",        
             success: function(data) {              
 //               console.log(data);
-                 barChart(data,"");
+                 barChart(data,loc);
 
             },
             error : function(httpReq,status,exception){
@@ -230,28 +255,47 @@ function brushended(){
             }
           });
 
-}
+}}
+
+
+brushed();
+brushended();
 
    
 
-d3.select(location+" svg").append("g")
+d3.select(loc+" svg").append("g")
 //         .on("click",mouseClick)
       .attr("class", "brush")
       .attr("transform", "translate(75,30)")
       .call(brush)
 //      .call(brush.event);  
 
-$("#b_button").html("Disable Brush")
-$("#b_button").attr("onclick", "disbale_brush('#test1_left')")
 }
 
 
-function disbale_brush(location){
-
-d3.selectAll(location + " .brush").remove();//clear the svg
-$("#b_button").attr("onclick", "enable_brush('#test1_left')")
-$("#b_button").html("Enable Brush")
+function disable_brush(loc){
+console.log(loc);
+d3.selectAll(loc + " .brush").remove();//clear the svg
+$(this).html("Enable Brush")
 }
+
+
+
+
+$(".b-button").click(function(){
+id = $(this).attr('id').charAt(1);
+loc = "#scatterChart" + id;
+action = $(this).text().charAt(0);
+if(action == 'E'){
+enable_brush(loc);
+$(this).html("Disable Brush")
+}
+else{
+
+disable_brush(loc);
+}
+}
+)
 
 
 
@@ -282,7 +326,7 @@ function drawGraph(source, location) {
     });
 
     chart.scatter.onlyCircles(false);
-    var pg = "#test1_" + location + " svg";
+    var pg =  location + " svg";
     d3.selectAll(pg + "> *").remove();//clear the svg
     d3.select(pg)
         .datum(getData(source))
@@ -298,7 +342,8 @@ function drawGraph(source, location) {
          $(".nv-point").on('click',
                function(){
                 id = $(".xy-tooltip b").html().toString();
-                var selector = "#test1_"+location+"+ .kmeans table tbody:last";
+                console.log(location);
+                var selector = location +"+ .kmeans table tbody:last";
                 $(selector).append('<tr><td>'+id+'</td></tr>');
            });
 
@@ -352,9 +397,11 @@ function getData(source, group, mincount) { //# groups,# points per group
 }
 
 function reformData(data) {
-  result =   [{
+  result =   [
+{
       key: "bar chart",
-      values: []},
+      values: []
+           },
 //                        {
 //      key: "bargin",
 //      values: [{"value":data["max_height"]}]}
@@ -370,18 +417,21 @@ function reformData(data) {
 return result
 }
 
-function barChart(data,location){
+function barChart(data,loc){
 
 var chart = nv.models.multiBarHorizontalChart()
       .x(function(d) { return d.label })    //Specify the data accessors.
       .y(function(d) { return d.value })
-//      .staggerLabels(true)    //Too many bars and not enough room? Try staggering labels.
+//      .staggerLabels(true)    //Too many bars and not enough room? Try staggering labels
       .tooltips(false)        //Don't show tooltips
-      .showValues(false)       //...instead, show the bar value right on top of each bar.
+      .showLegend(false)
+      .showControls(false)
+      .showValues(false)       //...instead, show the bar value right on top of each bar
       .transitionDuration(350)
+      .margin({top: 5, right: 55, bottom: 15, left: 5})
       ;
-
-  d3.select('#barChart1 svg')
+loc = '#barChart'+ loc.charAt(13);
+ d3.select(loc)
       .datum(reformData(data))
       .call(chart);
 

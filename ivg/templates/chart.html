@@ -275,9 +275,6 @@ d3.select(loc+" svg").append("g")
 
 
 function disable_brush(loc){
-console.log(loc);
-d3.selectAll(loc + " .brush").remove();//clear the svg
-$(this).html("Enable Brush")
 }
 
 
@@ -293,7 +290,10 @@ $(this).html("Disable Brush")
 }
 else{
 
-disable_brush(loc);
+d3.selectAll(loc + " .brush").remove();//clear the svg
+$(this).html("Enable Brush")
+
+
 }
 }
 )

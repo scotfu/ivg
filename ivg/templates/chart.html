@@ -436,7 +436,7 @@ nv.addGraph(function() {
        chart.tooltipContent(function(key,x,y,e,chart) {
 
 
-        return "Dimension: <b>"+e["point"]["dimension"]  + "</b> Count: <b>" + y + "</b>" ;
+        return "Dimension: <b hidden>"+e["point"]["dimension"]  + "</b><b>"+e["point"]["label"] +"</b> Count: <b>" + y + "</b>" ;
     });
 
 

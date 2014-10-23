@@ -452,12 +452,13 @@ nv.addGraph(function() {
 
           d3.selectAll(".nv-bar").on('click',function(){
             dimension =  $(".xy-tooltip b").html().toString();
+            loc ="#"+ $(this).closest("svg").attr("id");
             $.ajax({
             type: "GET",
             url: "histogram/"+dimension+"/",
             dataType: "json",        
             success: function(data) {              
-             console.log(loc)
+
               histogram(data, loc);
 
             },

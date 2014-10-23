@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="/static/css/nv.d3.css">
 
 
-<title>Vis Binary Data</title>
+<title>Vis Demo</title>
 
 <style>
 
@@ -27,7 +27,7 @@
   stroke: #fff;
   shape-rendering: crispEdges;
 }
-.nvtooltip { margin-left: 550px; }
+
 </style>
 
 </head>
@@ -76,7 +76,8 @@
           </div>
 
 
-            <svg id="barChart1" class="with-3d-shadow with-transitions col-md-2 "  style="height:820px"></svg>
+            <svg id="barChart1" class="col-md-2 with-3d-shadow with-transitions "  style="height:820px"></svg>
+
             <svg id="histogram1" class="with-3d-shadow with-transitions col-md-2 "  style="height:820px"></svg>
 
 
@@ -343,7 +344,6 @@ function drawGraph(source, location) {
          $(".nv-point").on('click',
                function(){
                 id = $(".xy-tooltip b").html().toString();
-                console.log(location);
                 var selector = location +"+ .kmeans table tbody:last";
                 $(selector).append('<tr><td>'+id+'</td></tr>');
            });
@@ -451,13 +451,13 @@ nv.addGraph(function() {
   return chart;},function(){
 
           d3.selectAll(".nv-bar").on('click',function(){
-            console.log('test')
             dimension =  $(".xy-tooltip b").html().toString();
             $.ajax({
             type: "GET",
             url: "histogram/"+dimension+"/",
             dataType: "json",        
             success: function(data) {              
+             console.log(loc)
               histogram(data, loc);
 
             },
@@ -495,7 +495,6 @@ function histogramData(data) {
                                   });         
                                   }
 return result
-console.log(result)
 }
 
 
@@ -534,6 +533,15 @@ nv.addGraph(function() {
 
 </script>
 
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
+  ga('create', 'UA-56064104-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
 </body>
 </html>

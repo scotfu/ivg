@@ -70,8 +70,8 @@
               <table id="k-points" class="table">
               <tbody></tbody>
               </table>
-
-            <button  class="btn btn-default k-button" onclick="kmeans('#scatterChart2')">K-Means</button>
+<a href="#scatterChart2">
+            <button  class="btn btn-default k-button" onclick="kmeans('#scatterChart2')">K-Means</button></a>
             <button id="b1" class="btn btn-default b-button">Enable Brush</button>
           </div>
 
@@ -97,7 +97,7 @@
               <tbody></tbody>
               </table>
 
-            <button  class="btn btn-default k-button" onclick="kmeans('#scatterChart3')">K-Means</button>
+<a href="#scatterChart3">            <button  class="btn btn-default k-button" onclick="kmeans('#scatterChart3')">K-Means</button></a>
             <button id="b2" class="btn btn-default b-button">Enable Brush</button>
           </div>
 
@@ -179,7 +179,7 @@ $("#magic_button").click(function(){
 
 
 function kmeans(location){
-      var location = location
+      var location = location;
       var urlString = "";
       var algorithm = $("#algorithm").val();
 
@@ -531,8 +531,22 @@ nv.addGraph(function() {
 
 }
 
-
+$(function() {
+  $('a[href*=#]:not([href=#])').click(function() {
+    if (location.pathname.replace(/^\//,'') == this.pathname.replace(/^\//,'') && location.hostname == this.hostname) {
+      var target = $(this.hash);
+      target = target.length ? target : $('[name=' + this.hash.slice(1) +']');
+      if (target.length) {
+        $('html,body').animate({
+          scrollTop: target.offset().top
+        }, 1000);
+        return false;
+      }
+    }
+  });
+});
 </script>
+
 
 <script>
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){

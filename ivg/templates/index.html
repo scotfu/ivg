@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title> List of examples</title>
+<title>Dimensional Reduction</title>
 
 </head>
 
@@ -9,15 +9,25 @@
 <body>
 
 <div>
-List starts right here</br>
+This project is still under developing. Features may change over time.</br></br>
 
+The main idea of this project is to serve as a general platform of <a href="http://en.wikipedia.org/wiki/Dimensionality_reduction">dimensional reducation</a>. </br> 
+You could upload a csv file that contains numeric data with other categorical data. The system will take a few minutes to do precomputation on a few algorithms(<a href="http://en.wikipedia.org/wiki/Multidimensional_scaling">MDS</a>,<a href="http://en.wikipedia.org/wiki/Principal_component_analysis">PCA<a/>) and redirect you to the plot page where you can explore further more the data with a couple gadgets. </br>
+</br>
+
+K-means will allow you to select a couple points as the centroids, then run sigle step k-means on the whole dataset. You could do this over again three times. Zoom-in could be achived in this way. The special 'margin'  cluster is used to fix the scale of the plot</br>
+
+Enable Brush is a feature that allows you to select mutiple points, then generate a barchart to the right of the scatter plot where you could see the average values of each dimensions on selected points. You can click on any of the bars to get a histogram on that selected dimention. In order to do the K-means, you need to disable brush first.</br> 
+</br>
+</div>
+
+
+<div>
+Demos
 {% if objects %}
-
 <ul>
 {% for case in objects %}
-<li>
-<a href="{{ url_for('case',case_name=case) }}">{{case}}</a>
-</li>
+<li><a href="{{ url_for('case',case_name=case) }}">{{case}}</a></li>
 {% endfor %}
 </ul>
 
@@ -27,9 +37,20 @@ No cases right now
 
 {% endif %}
 </div>
+
+
 <div><a href="{{ url_for('upload') }}">Upload</a></div>
 
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
+  ga('create', 'UA-56064104-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
 </body>
 
 </html>

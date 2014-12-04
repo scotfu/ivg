@@ -61,7 +61,7 @@
 
       <div class="row">
 
-        <div id="scatterChart1" class="with-3d-shadow with-transitions col-md-8"  style="height:880px">
+        <div id="scatterChart1" class="with-3d-shadow with-transitions col-md-8"  style="height:480px">
           <svg></svg>
         </div>
 
@@ -75,10 +75,19 @@
             <button id="b1" class="btn btn-default b-button">Enable Brush</button>
           </div>
 
+<div class="col-md-4 content">
 
-            <svg id="barChart1" class="col-md-2 with-3d-shadow with-transitions "  style="height:820px"></svg>
+URL: {{url}} <br/>
+Content: {{content}}
 
-            <svg id="histogram1" class="with-3d-shadow with-transitions col-md-2 "  style="height:820px"></svg>
+</div>
+
+</div>
+
+<div class="row">
+            <svg id="barChart1" class="col-md-8 with-3d-shadow with-transitions "  style="height:200px"></svg>
+
+            <svg id="histogram1" class="with-3d-shadow with-transitions col-md-8 "  style="height:200px"></svg>
 
 
       </div>
@@ -146,6 +155,7 @@
 <script>
 var width = 800+3;
 var height = 1145+3;
+var barChart1 = 1;
 
 $("#magic_button").click(function(){
       var algorithm = $("#algorithm").val();
@@ -403,9 +413,9 @@ function reformData(data) {
       key: "bar chart",
       values: []
            },
-//                        {
-//      key: "bargin",
-//      values: [{"value":data["max_height"]}]}
+                        {
+      key: "bargin",
+      values: [{"value":data["max_height"]}]}
 
       ]
 
@@ -421,17 +431,27 @@ return result
 
 function barChart(data,loc){
 
-var chart;
+if(barChart1!=1){
+      loc = '#barChart'+ loc.charAt(13);
+      d3.select(loc)
+      .datum(reformData(data))
+      .call(barChart1);
+
+  console.log("update")
+
+
+}
+else{
 nv.addGraph(function() {
-      chart = nv.models.multiBarHorizontalChart()
+barChart1 =  chart = nv.models.multiBarChart()
       .x(function(d) { return d.label })    //Specify the data accessors.
       .y(function(d) { return d.value })
       .tooltips(true)        //Don't show tooltips
-      .showLegend(false)
+      .showLegend(true)
       .showControls(false)
-      .showValues(false)       //...instead, show the bar value right on top of each bar
-      .transitionDuration(350)
-      .margin({top: 5, right: 55, bottom: 15, left: 5})
+//      .showValues(false)       //...instead, show the bar value right on top of each bar
+      .transitionDuration(150)
+//      .margin({top: 5, right: 55, bottom: 15, left: 5})
       ;
        chart.tooltipContent(function(key,x,y,e,chart) {
 
@@ -472,6 +492,8 @@ nv.addGraph(function() {
 
 }
 )
+
+}
 }
 
 function histogramData(data) {
@@ -502,31 +524,32 @@ return result
 
 function histogram(data,loc){
 
-var chart;
+var his_chart;
 loc = '#histogram'+loc.charAt(9);;
 
 
 nv.addGraph(function() {
-      chart =  nv.models.multiBarHorizontalChart()
+      his_chart = nv.models.multiBarChart()
       .x(function(d) { return d.x })    //Specify the data accessors.
       .y(function(d) { return d.y })
-//      .staggerLabels(true)    //Too many bars and not enough room? Try staggering labels
-      .tooltips(true)        //Don't show tooltips
+      .reduceXTicks(true)
+      .staggerLabels(true)    //Too many bars and not enough room? Try staggering labels
+//      .tooltips(true)        //Don't show tooltips
       .showLegend(false)
       .showControls(false)
-      .showValues(false)       //...instead, show the bar value right on top of each bar
       .transitionDuration(350)
-      .margin({top: 5, right: 55, bottom: 15, left: 5})
-      ;
 
+      ;
+    his_chart.xAxis
+        .tickFormat(d3.format(',f'));
 
        d3.select(loc)
       .datum(histogramData(data))
-      .call(chart);
+      .call(his_chart);
 
-       nv.utils.windowResize(chart.update);
+       nv.utils.windowResize(his_chart.update);
 
-      return chart;},function(){
+      return his_chart;},function(){
                 });
 
 }

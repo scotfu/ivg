@@ -9,7 +9,7 @@ from flask import Flask, request, session, g, redirect, url_for, abort,render_te
 
 
 from . import app
-from .utils import allowed_file, csv_handler, get_collections, case_query, kmeans_query, kmeans2_query, get_all_points, aggregation, histogram, CustomEncoder
+from .utils import allowed_file, csv_handler, get_collections, case_query, kmeans_query, kmeans2_query, get_all_points, aggregation, histogram, CustomEncoder, get_case_info
 
 class ListView(View):
 
@@ -26,13 +26,20 @@ class ListView(View):
         return self.render_template(context)
 
         
-class CaseView(ListView):
+class CaseView(View):
 
     def get_template_name(self):
         return 'chart.html'
 
-    def get_objects(self):
-        return None
+    def render_template(self, context):
+
+        return render_template(self.get_template_name(), **context)
+
+    def dispatch_request(self,**kwargs):
+        url, content = get_case_info(kwargs.get('case_name','hi'))
+        context = {'url':url, 'content': content}
+        return self.render_template(context)
+
 
         
 class IndexView(ListView):
@@ -55,9 +62,11 @@ class UploadView(MethodView):
         if file and allowed_file(file.filename):
             file_name = secure_filename(file.filename)
             file_path = os.path.join(app.config['UPLOAD_FOLDER'], file_name)
-            collection_name = request.form.get('url')
+            name = request.form.get('name')
+            url = request.form.get('name')
+            content = request.form.get('content')
             file.save(file_path)
-            csv_handler(file_path, collection_name)
+            csv_handler(file_path, name, url, content)
             return redirect(url_for('index'))
         flash('Upload failed, please try again')
         return redirect(url_for('upload'))            

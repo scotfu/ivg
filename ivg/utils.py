@@ -51,8 +51,15 @@ def get_collections():
     cases = list(db['fsc_case'].find())
     case_names = [case.get('name') for case in cases]
     return case_names
-        
-def csv_handler(file_name,collection_name):
+
+def get_case_info(name):
+    db = get_db()
+    collection = db['fsc_case']
+    case = collection.find({'name':name})[0]
+    return case.get('url'), case.get('content')
+
+    
+def csv_handler(file_name,collection_name, url, content):
     data_set = []
     db = get_db()
     collection = db[collection_name]
@@ -135,7 +142,8 @@ def csv_handler(file_name,collection_name):
                             'pca' : list(X_true[n]), 
                            }
                           })
-    case_collection.insert({'name':collection_name, 'header':numeric_headers})
+    case_collection.insert({'name':collection_name, 'header':numeric_headers, 'url':url,
+                            'content': content})
 
 
 class CustomEncoder(json.JSONEncoder):

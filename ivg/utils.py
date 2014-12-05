@@ -56,6 +56,7 @@ def get_case_info(name):
     db = get_db()
     collection = db['fsc_case']
     case = collection.find({'name':name})[0]
+    print case.get('url'), case.get('content')
     return case.get('url'), case.get('content')
 
     
@@ -76,7 +77,8 @@ def csv_handler(file_name,collection_name, url, content):
                 try:
                     row[column] = float(row[column])
                     data['coordinate'].append(row[column])
-                    numeric_headers.append(header[column])
+                    if count == 1:
+                        numeric_headers.append(header[column])
                 except ValueError:
                     data[header[column]] = row[column]
             data_set.append(data['coordinate'])        
@@ -142,6 +144,7 @@ def csv_handler(file_name,collection_name, url, content):
                             'pca' : list(X_true[n]), 
                            }
                           })
+    print url,content
     case_collection.insert({'name':collection_name, 'header':numeric_headers, 'url':url,
                             'content': content})
 

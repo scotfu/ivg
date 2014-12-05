@@ -62,8 +62,8 @@ class UploadView(MethodView):
         if file and allowed_file(file.filename):
             file_name = secure_filename(file.filename)
             file_path = os.path.join(app.config['UPLOAD_FOLDER'], file_name)
-            name = request.form.get('name')
-            url = request.form.get('name')
+            name = request.form.get('name').strip()
+            url = request.form.get('url').strip()
             content = request.form.get('content')
             file.save(file_path)
             csv_handler(file_path, name, url, content)

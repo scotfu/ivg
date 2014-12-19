@@ -239,16 +239,20 @@ def aggregation(collection_name, ids):
     n = float(len(points))
     dimension = len(points[0]['coordinate'])
     data = [0] * dimension
+    mins = [float('inf')] * dimension
+    maxs = [float('-inf')] * dimension
     for point in points:
         for i in range(dimension):
             data[i] += point['coordinate'][i]
     data = map(lambda x: x/n, data)
     header = db['fsc_case'].find({'name':collection_name})[0].get('header')
-    height = list(collection.find({}, {'coordinate':1}))
-    max_height = 0
-    for coor in height:
-        max_height = max(max_height, max(coor['coordinate']))
-    return data, max_height,  header
+    all_points = list(collection.find({}, {'coordinate':1}))
+    for point in all_points:
+        for i in range(dimension):
+            mins[i] = min(mins[i], point['coordinate'][i])
+            maxs[i] = max(maxs[i], point['coordinate'][i])
+    
+    return data, header, mins, maxs
 #kmeans part starts
     
 #watch out: float flaw 

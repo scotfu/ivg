@@ -49,7 +49,7 @@
   </div>
 
   </div>
-  <button id="magic_button" class="btn btn-default">Generate a chart</button>
+  <button id="magic_button" class="btn btn-default" onclick="n_button()">Generate a chart</button>
 
 </div>
 
@@ -157,7 +157,10 @@ var width = 800+3;
 var height = 1145+3;
 var barChart1 = 1;
 
-$("#magic_button").click(function(){
+window.onload= load();
+
+function n_button(){
+
       var algorithm = $("#algorithm").val();
 
       $.ajax({
@@ -174,8 +177,14 @@ $("#magic_button").click(function(){
           });
 
 
-    });
+    }
 
+
+function load(){
+
+$("#magic_button").click();
+
+}
 
  function mouseClick()
  {
@@ -464,7 +473,7 @@ barChart1 =  chart = nv.models.multiBarChart()
       ;
        chart.tooltipContent(function(key,x,y,e,chart) {
 
-                  return "Value: <b hidden>"+e["point"]["label"]  + "</b><b>"+e["point"]["original_value"] ;
+                  return "Dimension:"+ e["point"]["label"]+ " Value:"+e["point"]["original_value"] ;
 
     });
 

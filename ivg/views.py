@@ -9,7 +9,9 @@ from flask import Flask, request, session, g, redirect, url_for, abort,render_te
 
 
 from . import app
-from .utils import allowed_file, csv_handler, get_collections, case_query, kmeans_query, kmeans2_query, get_all_points, aggregation, histogram, CustomEncoder, get_case_info
+from .utils import allowed_file, get_collections, case_query, kmeans_query, kmeans2_query, get_all_points, aggregation, histogram, CustomEncoder, get_case_info
+
+from .tasks import csv_handler
 
 class ListView(View):
 
@@ -66,7 +68,7 @@ class UploadView(MethodView):
             url = request.form.get('url').strip()
             content = request.form.get('content')
             file.save(file_path)
-            csv_handler(file_path, name, url, content)
+            csv_handler.delay(file_path, name, url, content)
             return redirect(url_for('index'))
         flash('Upload failed, please try again')
         return redirect(url_for('upload'))            
